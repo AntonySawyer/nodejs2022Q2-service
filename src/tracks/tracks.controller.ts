@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { StatusCodes } from 'http-status-codes';
 
 @Controller('track')
 export class TracksController {
@@ -36,6 +38,7 @@ export class TracksController {
   }
 
   @Delete(':id')
+  @HttpCode(StatusCodes.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.tracksService.remove(+id);
   }

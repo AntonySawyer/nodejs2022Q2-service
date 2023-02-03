@@ -6,7 +6,9 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
+import { StatusCodes } from 'http-status-codes';
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
@@ -36,6 +38,7 @@ export class ArtistsController {
   }
 
   @Delete(':id')
+  @HttpCode(StatusCodes.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.artistsService.remove(+id);
   }
