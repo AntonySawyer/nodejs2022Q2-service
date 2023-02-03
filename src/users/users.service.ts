@@ -1,16 +1,27 @@
 import { Injectable } from '@nestjs/common';
+import { IGenericRepository } from 'src/shared/db/db.interface';
+import { GenericRepository } from 'src/shared/db/genericRepository';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
+  constructor() {
+    this.storage = new GenericRepository<User>();
+  }
+
+  private storage: IGenericRepository<User>;
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    const users = await this.storage.find();
+
+    return users;
   }
 
   findOne(id: number) {
