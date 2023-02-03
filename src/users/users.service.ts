@@ -1,27 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
+import { v4 as uuidV4 } from 'uuid';
+import { instanceToPlain, plainToClass } from 'class-transformer';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
+import { IUserResponse } from './entities/user.interface';
+
+// TODO: refactor response type using some util or update code to use other Class instance for hide `password` field
 
 @Injectable()
 export class UsersService {
   constructor() {
-    this.storage = new GenericRepository<User>();
+    this.storage = new GenericRepository<UserEntity>();
   }
 
-  private storage: IGenericRepository<User>;
+  private storage: IGenericRepository<UserEntity>;
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto): Promise<IUserResponse> {
+    const newId = uuidV4();
+    const userInstance = plainToClass(UserEntity, {
+      id: newId,
+      ...createUserDto,
+    });
+
+    const createdUserInstance = await this.storage.create(newId, userInstance);
+
+    const plainCreatedUser = instanceToPlain(
+      createdUserInstance,
+    ) as IUserResponse;
+
+    return plainCreatedUser;
   }
 
-  async findAll() {
-    const users = await this.storage.find();
+  async findAll(): Promise<IUserResponse[]> {
+    const userInstances = await this.storage.find();
 
-    return users;
+    const plainUsers: IUserResponse[] = userInstances.map(
+      (userInstance) => instanceToPlain(userInstance) as IUserResponse,
+    );
+
+    return plainUsers;
   }
 
   findOne(id: number) {
