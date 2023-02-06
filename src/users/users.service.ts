@@ -3,11 +3,13 @@ import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
 import { v4 as uuidV4 } from 'uuid';
 import { instanceToPlain, plainToClass } from 'class-transformer';
+import { isUUID } from 'class-validator';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
+import { BadRequestError } from 'src/shared/error';
 
 // TODO: refactor response type using some util or update code to use other Class instance for hide `password` field
 
@@ -45,15 +47,27 @@ export class UsersService {
     return plainUsers;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string): Promise<IUserResponse> {
+    try {
+      const isIdValid = isUUID(id, '4');
+
+      if (!isIdValid) {
+        throw new BadRequestError('Incorrect format of id');
+      }
+
+      const user = await this.storage.findById(id);
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} user`;
   }
 }
