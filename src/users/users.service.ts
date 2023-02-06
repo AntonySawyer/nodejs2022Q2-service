@@ -10,6 +10,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
 import { BadRequestError } from 'src/shared/error';
+import { AuthError } from 'src/shared/error/AuthError';
 
 // TODO: refactor response type using some util or update code to use other Class instance for hide `password` field
 
@@ -63,8 +64,47 @@ export class UsersService {
     }
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<IUserResponse> {
+    try {
+      const isIdValid = isUUID(id, '4');
+
+      if (!isIdValid) {
+        throw new BadRequestError('Incorrect format of id');
+      }
+
+      const originalUser = await this.storage.findById(id);
+
+      const updatedUserInstance = plainToClass(UpdateUserDto, updateUserDto);
+
+      if (originalUser.password !== updatedUserInstance.oldPassword) {
+        throw new AuthError('Incorrect password');
+      }
+
+      const userForUpdate: UserEntity = {
+        ...originalUser,
+        password: updatedUserInstance.newPassword,
+        version: originalUser.version + 1,
+        updatedAt: Date.now(),
+      };
+
+      const updatedUserDbResponse = await this.storage.updateById(
+        id,
+        userForUpdate,
+      );
+
+      delete updatedUserDbResponse.password;
+
+      const plainUpdatedUser = instanceToPlain(
+        updatedUserDbResponse,
+      ) as IUserResponse;
+
+      return plainUpdatedUser;
+    } catch (error) {
+      throw error;
+    }
   }
 
   remove(id: string) {
