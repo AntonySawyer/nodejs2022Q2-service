@@ -1,19 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
-import { isUUID } from 'class-validator';
 import { v4 as uuidV4 } from 'uuid';
 
 import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
-import { BadRequestError } from 'src/shared/error';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { ITrack } from './entities/track.interface';
+import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
+import { FavsService } from 'src/favs/favs.service';
 
 @Injectable()
 export class TracksService {
-  constructor() {
+  constructor(
+    @Inject(forwardRef(() => FavsService))
+    private favsService: FavsService,
+  ) {
     this.storage = new GenericRepository<TrackEntity>();
   }
 
@@ -45,11 +48,7 @@ export class TracksService {
 
   async findOne(id: string): Promise<TrackEntity> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const entity = await this.storage.findById(id);
 
@@ -64,11 +63,7 @@ export class TracksService {
     updateTrackDto: UpdateTrackDto,
   ): Promise<TrackEntity> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const originalEntity = await this.storage.findById(id);
 
@@ -99,13 +94,11 @@ export class TracksService {
 
   async remove(id: string) {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       await this.storage.removeById(id);
+
+      await this.favsService.removeTrack(id);
     } catch (error) {
       throw error;
     }

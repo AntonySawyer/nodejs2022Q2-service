@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -8,18 +8,21 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
-import { isUUID } from 'class-validator';
-import { BadRequestError } from 'src/shared/error';
 import { TracksService } from 'src/tracks/tracks.service';
+import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
+import { FavsService } from 'src/favs/favs.service';
 
 @Injectable()
 export class AlbumsService {
-  constructor() {
+  constructor(
+    @Inject(forwardRef(() => FavsService))
+    private favsService: FavsService,
+
+    @Inject(forwardRef(() => TracksService))
+    private trackService: TracksService,
+  ) {
     this.storage = new GenericRepository<AlbumEntity>();
   }
-
-  @Inject(TracksService)
-  private trackService: TracksService;
 
   private storage: IGenericRepository<AlbumEntity>;
 
@@ -49,11 +52,7 @@ export class AlbumsService {
 
   async findOne(id: string): Promise<AlbumEntity> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const entity = await this.storage.findById(id);
 
@@ -68,11 +67,7 @@ export class AlbumsService {
     updateAlbumDto: UpdateAlbumDto,
   ): Promise<AlbumEntity> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const originalEntity = await this.storage.findById(id);
 
@@ -103,11 +98,7 @@ export class AlbumsService {
 
   async remove(id: string): Promise<void> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       await this.storage.removeById(id);
 
@@ -121,6 +112,8 @@ export class AlbumsService {
           albumId: null,
         });
       });
+
+      await this.favsService.removeAlbum(id);
     } catch (error) {
       throw error;
     }

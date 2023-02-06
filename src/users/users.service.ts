@@ -3,16 +3,13 @@ import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
 import { v4 as uuidV4 } from 'uuid';
 import { instanceToPlain, plainToClass } from 'class-transformer';
-import { isUUID } from 'class-validator';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
-import { BadRequestError } from 'src/shared/error';
 import { AuthError } from 'src/shared/error/AuthError';
-
-// TODO: refactor response type using some util or update code to use other Class instance for hide `password` field
+import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 
 @Injectable()
 export class UsersService {
@@ -50,11 +47,7 @@ export class UsersService {
 
   async findOne(id: string): Promise<IUserResponse> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const user = await this.storage.findById(id);
 
@@ -69,11 +62,7 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
   ): Promise<IUserResponse> {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       const originalUser = await this.storage.findById(id);
 
@@ -109,11 +98,7 @@ export class UsersService {
 
   async remove(id: string) {
     try {
-      const isIdValid = isUUID(id, '4');
-
-      if (!isIdValid) {
-        throw new BadRequestError('Incorrect format of id');
-      }
+      await validateIsUUID(id);
 
       await this.storage.removeById(id);
     } catch (error) {
