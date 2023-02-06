@@ -1,6 +1,4 @@
-import { ITrack } from './track.interface';
-
-export class TrackEntity implements ITrack {
+export interface ITrack {
   id: string;
   name: string;
   artistId: string | null;
