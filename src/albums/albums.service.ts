@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -10,12 +10,16 @@ import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
 import { isUUID } from 'class-validator';
 import { BadRequestError } from 'src/shared/error';
+import { TracksService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class AlbumsService {
   constructor() {
     this.storage = new GenericRepository<AlbumEntity>();
   }
+
+  @Inject(TracksService)
+  private trackService: TracksService;
 
   private storage: IGenericRepository<AlbumEntity>;
 
@@ -106,6 +110,17 @@ export class AlbumsService {
       }
 
       await this.storage.removeById(id);
+
+      const allTracks = await this.trackService.findAll();
+
+      const tracksFromAlbum = allTracks.filter((track) => track.albumId === id);
+
+      tracksFromAlbum.forEach(async (track) => {
+        await this.trackService.update(track.id, {
+          ...track,
+          albumId: null,
+        });
+      });
     } catch (error) {
       throw error;
     }

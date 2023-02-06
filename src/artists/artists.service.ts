@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import { v4 as uuidV4 } from 'uuid';
@@ -10,12 +10,16 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { IArtist } from './entities/artist.interface';
+import { TracksService } from 'src/tracks/tracks.service';
 
 @Injectable()
 export class ArtistsService {
   constructor() {
     this.storage = new GenericRepository<ArtistEntity>();
   }
+
+  @Inject(TracksService)
+  private trackService: TracksService;
 
   private storage: IGenericRepository<ArtistEntity>;
 
@@ -106,6 +110,19 @@ export class ArtistsService {
       }
 
       await this.storage.removeById(id);
+
+      const allTracks = await this.trackService.findAll();
+
+      const tracksFromArtist = allTracks.filter(
+        (track) => track.artistId === id,
+      );
+
+      tracksFromArtist.forEach(async (track) => {
+        await this.trackService.update(track.id, {
+          ...track,
+          artistId: null,
+        });
+      });
     } catch (error) {
       throw error;
     }
