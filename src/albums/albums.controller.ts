@@ -3,10 +3,10 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   HttpCode,
+  Put,
 } from '@nestjs/common';
 import { StatusCodes } from 'http-status-codes';
 import { AlbumsService } from './albums.service';
@@ -29,17 +29,17 @@ export class AlbumsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.albumsService.findOne(+id);
+    return this.albumsService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateAlbumDto: UpdateAlbumDto) {
-    return this.albumsService.update(+id, updateAlbumDto);
+    return this.albumsService.update(id, updateAlbumDto);
   }
 
   @Delete(':id')
   @HttpCode(StatusCodes.NO_CONTENT)
   remove(@Param('id') id: string) {
-    return this.albumsService.remove(+id);
+    return this.albumsService.remove(id);
   }
 }
