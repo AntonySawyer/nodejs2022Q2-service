@@ -42,6 +42,12 @@ export class GenericRepository<TType> implements IGenericRepository<TType> {
         throw new NotFoundError('Not found');
       }
     } catch (error) {
+      const isNotFoundError = error instanceof NotFoundError;
+
+      if (isNotFoundError) {
+        throw error;
+      }
+
       throw new InternalError('Something went wrong');
     }
   }

@@ -107,7 +107,17 @@ export class UsersService {
     }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      const isIdValid = isUUID(id, '4');
+
+      if (!isIdValid) {
+        throw new BadRequestError('Incorrect format of id');
+      }
+
+      await this.storage.removeById(id);
+    } catch (error) {
+      throw error;
+    }
   }
 }
