@@ -1,0 +1,12 @@
+# app related files
+node_modules
+dist
+.env.example
+**/*.md
+**/.dockerignore
+
+# git related files
+**/.git/
+**/.gitattributes
+**/.gitignore
+**/.gitmodules
