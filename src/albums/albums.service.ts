@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
+import { isUUID } from 'class-validator';
 
 import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
@@ -11,6 +12,8 @@ import { IAlbum } from './entities/album.interface';
 import { TracksService } from 'src/tracks/tracks.service';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { FavsService } from 'src/favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AlbumsService {
@@ -20,8 +23,11 @@ export class AlbumsService {
 
     @Inject(forwardRef(() => TracksService))
     private trackService: TracksService,
+
+    @InjectRepository(AlbumEntity)
+    private repository: Repository<AlbumEntity>,
   ) {
-    this.storage = new GenericRepository<AlbumEntity>();
+    this.storage = new GenericRepository<AlbumEntity>(this.repository);
   }
 
   private storage: IGenericRepository<AlbumEntity>;
@@ -33,7 +39,7 @@ export class AlbumsService {
       ...createAlbumDto,
     });
 
-    const createdInstance = await this.storage.create(newId, newInstance);
+    const createdInstance = await this.storage.create(newInstance);
 
     const plainCreatedEntity = instanceToPlain(createdInstance) as IAlbum;
 
@@ -57,6 +63,18 @@ export class AlbumsService {
       const entity = await this.storage.findById(id);
 
       return entity;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findManyByIds(ids: string[]): Promise<AlbumEntity[]> {
+    const validatedIds = ids.filter((id) => isUUID(id));
+
+    try {
+      const entities = await this.storage.findManyByIds(validatedIds);
+
+      return entities;
     } catch (error) {
       throw error;
     }
