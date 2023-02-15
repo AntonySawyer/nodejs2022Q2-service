@@ -6,6 +6,7 @@ import { TrackEntity } from 'src/tracks/entities/track.entity';
 import { ITrack } from 'src/tracks/entities/track.interface';
 
 export interface IFav {
+  id: string;
   artists: Array<IArtist['id']>;
   albums: Array<IAlbum['id']>;
   tracks: Array<ITrack['id']>;

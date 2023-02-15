@@ -1,4 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { AlbumsService } from 'src/albums/albums.service';
 import { ArtistsService } from 'src/artists/artists.service';
@@ -21,13 +23,17 @@ export class FavsService {
 
     @Inject(forwardRef(() => ArtistsService))
     private artistService: ArtistsService,
+
+    @InjectRepository(FavEntity)
+    private repository: Repository<FavEntity>,
   ) {
     const USER_ID = 'common-id-for-each-user-by-requirements';
 
     this.favId = USER_ID;
-    this.storage = new GenericRepository<FavEntity>();
+    this.storage = new GenericRepository<FavEntity>(this.repository);
 
-    this.storage.create(USER_ID, {
+    this.storage.create({
+      id: USER_ID,
       albums: [],
       artists: [],
       tracks: [],
@@ -40,31 +46,13 @@ export class FavsService {
 
   async findAll() {
     try {
-      const result: IFavoritesRepsonse = {
-        albums: [],
-        artists: [],
-        tracks: [],
-      };
-
       const favs = await this.getCommonFavs();
 
-      favs.albums.forEach(async (albumId) => {
-        const album = await this.albumService.findOne(albumId);
-
-        result.albums.push(album);
-      });
-
-      favs.artists.map(async (artistId) => {
-        const artist = await this.artistService.findOne(artistId);
-
-        result.artists.push(artist);
-      });
-
-      favs.tracks.map(async (trackId) => {
-        const track = await this.trackService.findOne(trackId);
-
-        result.tracks.push(track);
-      });
+      const result: IFavoritesRepsonse = {
+        albums: await this.albumService.findManyByIds(favs.albums),
+        artists: await this.artistService.findManyByIds(favs.artists),
+        tracks: await this.trackService.findManyByIds(favs.tracks),
+      };
 
       return result;
     } catch (error) {
