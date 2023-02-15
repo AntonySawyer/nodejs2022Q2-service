@@ -1,25 +1,40 @@
+import { FindOneOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+
 import { InternalError, NotFoundError } from '../error';
-import { IGenericRepository } from './db.interface';
+import { EntityWithId, IGenericRepository } from './db.interface';
 
-export class GenericRepository<TType> implements IGenericRepository<TType> {
-  private dataSource = new Map<string, TType>();
-
-  private set data(data: Map<string, TType>) {
-    this.dataSource = data;
+export class GenericRepository<TType extends EntityWithId>
+  implements IGenericRepository<TType>
+{
+  constructor(targetRepository: Repository<TType>) {
+    this.storage = targetRepository;
   }
 
-  private get data() {
-    return this.dataSource;
-  }
+  private storage: Repository<TType>;
 
   public async find(): Promise<TType[]> {
-    const dataArray = [...this.data.values()];
+    const data = await this.storage.find();
 
-    return dataArray;
+    return data;
+  }
+
+  public async findManyByIds(ids: string[]): Promise<TType[]> {
+    const data = await this.storage.find({
+      where: {
+        id: In(ids),
+      } as FindOptionsWhere<TType>,
+    });
+
+    return data;
   }
 
   public async findById(id: string): Promise<TType | undefined> {
-    const result = this.data.get(id);
+    const result = await this.storage.findOne({
+      where: {
+        id,
+      },
+    } as FindOneOptions<TType>);
 
     if (!result) {
       throw new NotFoundError('Not found');
@@ -28,19 +43,25 @@ export class GenericRepository<TType> implements IGenericRepository<TType> {
     return result;
   }
 
-  public async create(id: string, entity: TType): Promise<TType> {
-    this.data.set(id, entity);
+  public async create(entity: TType): Promise<TType> {
+    try {
+      await this.storage.save(entity);
 
-    return entity;
+      return entity;
+    } catch (error) {
+      throw error;
+    }
   }
 
   public async removeById(id: string): Promise<void> {
     try {
-      const isRemoved = this.data.delete(id);
+      const isExist = await this.findById(id);
 
-      if (!isRemoved) {
+      if (!isExist) {
         throw new NotFoundError('Not found');
       }
+
+      await this.storage.delete(id);
     } catch (error) {
       const isNotFoundError = error instanceof NotFoundError;
 
@@ -53,17 +74,18 @@ export class GenericRepository<TType> implements IGenericRepository<TType> {
   }
 
   public async updateById(id: string, updatedEntity: TType): Promise<TType> {
-    const originalEntity = await this.findById(id);
-
     try {
-      const entityForSave = {
-        ...originalEntity,
-        ...updatedEntity,
-      };
+      const body = { ...updatedEntity };
+      delete body.id;
 
-      this.data.set(id, entityForSave);
+      await this.storage.update(
+        id,
+        body as unknown as QueryDeepPartialEntity<TType>,
+      );
 
-      return entityForSave;
+      const originalEntity = await this.findById(id);
+
+      return originalEntity;
     } catch (error) {
       throw new InternalError('Something went wrong');
     }
