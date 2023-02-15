@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "*.json",
+    "/node_modules/",
+    "*.md",
+    "**.spec.ts",
+    "/dist/"
+  ]
+}
