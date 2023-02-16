@@ -83,9 +83,11 @@ docker-compose up
 
 ## Check if it works
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+- Check that console incluse success `nestjs` messages after `Starting compilation in watch mode...` log. In case your terminal freeze at previous step - reload app (otherwise - some relations features wouldn't work properly)
+- Run `docker exec app npm run test` - all tests should be passed. In case you have some failed tests - check previous point and try to reload app. Replace `app` in command if needed (see `Testing` section).
+- After starting the app on port (4000 as default) you can open
+  in your browser OpenAPI documentation by typing http://localhost:4000/doc.
+  For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 > Path and port can be configured at `.env` file.
 
@@ -98,7 +100,7 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
   docker exec app npm run test
 ```
 
-> If you or your system use different names - replase `app` with updated name or target `CONTAINER_ID` (You could see it after run command `docker ps`)
+> If you or your system use different names - replace `app` with updated name or target `CONTAINER_ID` (You could see it after run command `docker ps`)
 
 After application running open new terminal and enter:
 
@@ -180,3 +182,25 @@ docker push antonysawyer/home-library:tagname
 ```
 
 </details>
+
+<br />
+
+### Possible problems with app launch
+
+- If error message say that port for DB already used at your system:
+
+  > 1. Finish process, that used this port (5432 by default, if you do not change related `.env` variable)
+  > 2. If you do not want get this port to app - define other port in `.env`
+  > 3. relaunch app starting from `docker-compose up`
+
+  <br />
+
+- If some system return any error about missing entity for DB:
+
+  > There is 99% chanses that this error related to wrong previous launch, app build or same names with other apps created from same template. For resolve problem:
+  >
+  > 1. Stop Docker containers (using cli or UI app/extension)
+  > 2. Remove related to app Docker containers, images and **volumes** (using cli or UI app/extension, removing `volumes` are very important part. Related `volumes` named in format `nodejs2022q2-service_db-{TYPE}` (TYPE equals `logs` and `data`)
+  > 3. Relaunch app starting from `docker-compose up`
+
+    <br />
