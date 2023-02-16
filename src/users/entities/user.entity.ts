@@ -5,6 +5,7 @@ import {
   Entity,
   PrimaryColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 
 import { IUser } from './user.interface';
@@ -28,7 +29,7 @@ export class UserEntity implements IUser {
   @Exclude({ toPlainOnly: true })
   password: string;
 
-  @Column('int')
+  @VersionColumn()
   version: number;
 
   @CreateDateColumn({

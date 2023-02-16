@@ -20,7 +20,10 @@ const {
   POSTGRES_DB,
   POSTGRES_USER,
   POSTGRES_PASSWORD,
+  DB_FULL_LOG,
 } = process.env;
+
+const isDbFullLogEnabled = DB_FULL_LOG === 'true';
 
 @Module({
   imports: [
@@ -33,6 +36,8 @@ const {
       database: POSTGRES_DB,
       entities: [UserEntity, ArtistEntity, AlbumEntity, TrackEntity, FavEntity],
       synchronize: true,
+      logging: isDbFullLogEnabled,
+      logger: isDbFullLogEnabled ? 'advanced-console' : undefined,
     }),
     UsersModule,
     TracksModule,
