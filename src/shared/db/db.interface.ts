@@ -5,6 +5,7 @@ export interface IGenericRepository<TType extends EntityWithId> {
   create: (entity: TType) => Promise<TType>;
   updateById: (id: string, entity: Partial<TType>) => Promise<TType>;
   removeById: (id: string) => Promise<void>;
+  removeBy: (field: string, id: string) => Promise<void>;
 }
 
 export interface EntityWithId {
