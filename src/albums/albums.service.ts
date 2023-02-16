@@ -9,7 +9,6 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
-import { TracksService } from 'src/tracks/tracks.service';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,9 +19,6 @@ export class AlbumsService {
   constructor(
     @Inject(forwardRef(() => FavsService))
     private favsService: FavsService,
-
-    @Inject(forwardRef(() => TracksService))
-    private trackService: TracksService,
 
     @InjectRepository(AlbumEntity)
     private repository: Repository<AlbumEntity>,
@@ -119,17 +115,6 @@ export class AlbumsService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      const allTracks = await this.trackService.findAll();
-
-      const tracksFromAlbum = allTracks.filter((track) => track.albumId === id);
-
-      tracksFromAlbum.forEach(async (track) => {
-        await this.trackService.update(track.id, {
-          ...track,
-          albumId: null,
-        });
-      });
 
       await this.favsService.removeAlbum(id);
     } catch (error) {

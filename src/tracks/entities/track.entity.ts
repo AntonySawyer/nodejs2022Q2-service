@@ -1,5 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
+import { AlbumEntity } from 'src/albums/entities/album.entity';
+import { ArtistEntity } from 'src/artists/entities/artist.entity';
 import { ITrack } from './track.interface';
 
 @Entity()
@@ -10,10 +12,22 @@ export class TrackEntity implements ITrack {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column('uuid', { nullable: true })
+  @ManyToOne(() => ArtistEntity, (artist) => artist.id, {
+    onDelete: 'SET NULL',
+    nullable: true,
+    eager: false,
+  })
+  @JoinColumn({ name: 'artistId', referencedColumnName: 'id' })
   artistId: string | null;
 
-  @Column({ nullable: true })
+  @Column('uuid', { nullable: true })
+  @ManyToOne(() => AlbumEntity, (album) => album.id, {
+    onDelete: 'SET NULL',
+    nullable: true,
+    eager: false,
+  })
+  @JoinColumn({ name: 'albumId', referencedColumnName: 'id' })
   albumId: string | null;
 
   @Column('int')

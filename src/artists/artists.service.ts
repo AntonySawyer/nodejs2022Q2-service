@@ -8,7 +8,6 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { IArtist } from './entities/artist.interface';
-import { TracksService } from 'src/tracks/tracks.service';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,9 +17,6 @@ import { isUUID } from 'class-validator';
 @Injectable()
 export class ArtistsService {
   constructor(
-    @Inject(forwardRef(() => TracksService))
-    private trackService: TracksService,
-
     @Inject(forwardRef(() => FavsService))
     private favsService: FavsService,
 
@@ -119,19 +115,6 @@ export class ArtistsService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      const allTracks = await this.trackService.findAll();
-
-      const tracksFromArtist = allTracks.filter(
-        (track) => track.artistId === id,
-      );
-
-      tracksFromArtist.forEach(async (track) => {
-        await this.trackService.update(track.id, {
-          ...track,
-          artistId: null,
-        });
-      });
 
       await this.favsService.removeArtist(id);
     } catch (error) {

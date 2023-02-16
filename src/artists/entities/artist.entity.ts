@@ -4,7 +4,7 @@ import { IArtist } from './artist.interface';
 
 @Entity()
 export class ArtistEntity implements IArtist {
-  @PrimaryColumn({ generated: 'uuid' })
+  @PrimaryColumn('uuid', { generated: 'uuid' })
   id: string;
 
   @Column('text')

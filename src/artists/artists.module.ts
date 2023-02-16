@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ArtistsService } from './artists.service';
 import { ArtistsController } from './artists.controller';
-import { TracksModule } from 'src/tracks/tracks.module';
 import { FavsModule } from 'src/favs/favs.module';
 import { ArtistEntity } from './entities/artist.entity';
 
@@ -11,7 +10,6 @@ import { ArtistEntity } from './entities/artist.entity';
   controllers: [ArtistsController],
   providers: [ArtistsService],
   imports: [
-    forwardRef(() => TracksModule),
     forwardRef(() => FavsModule),
     TypeOrmModule.forFeature([ArtistEntity]),
   ],
