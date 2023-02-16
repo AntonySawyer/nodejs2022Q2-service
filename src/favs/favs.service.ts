@@ -9,8 +9,15 @@ import { GenericRepository } from 'src/shared/db/genericRepository';
 import { UnprocessableError } from 'src/shared/error/UnprocessableError';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { TracksService } from 'src/tracks/tracks.service';
-import { FavEntity } from './entities/fav.entity';
-import { IFav, IFavoritesRepsonse } from './entities/fav.interface';
+import {
+  IFavIdsCollection,
+  IFavoritesRepsonse,
+} from './entities/fav.interface';
+import {
+  FavAlbumEntity,
+  FavArtistEntity,
+  FavTrackEntity,
+} from './entities/fav.entity';
 
 @Injectable()
 export class FavsService {
@@ -24,23 +31,32 @@ export class FavsService {
     @Inject(forwardRef(() => ArtistsService))
     private artistService: ArtistsService,
 
-    @InjectRepository(FavEntity)
-    private repository: Repository<FavEntity>,
+    @InjectRepository(FavArtistEntity)
+    private repositoryArtist: Repository<FavArtistEntity>,
+
+    @InjectRepository(FavAlbumEntity)
+    private repositoryAlbum: Repository<FavAlbumEntity>,
+
+    @InjectRepository(FavTrackEntity)
+    private repositoryTrack: Repository<FavTrackEntity>,
   ) {
     const USER_ID = 'common-id-for-each-user-by-requirements';
 
     this.favId = USER_ID;
-    this.storage = new GenericRepository<FavEntity>(this.repository);
-
-    this.storage.create({
-      id: USER_ID,
-      albums: [],
-      artists: [],
-      tracks: [],
-    });
+    this.artistStorage = new GenericRepository<FavArtistEntity>(
+      this.repositoryArtist,
+    );
+    this.albumStorage = new GenericRepository<FavAlbumEntity>(
+      this.repositoryAlbum,
+    );
+    this.trackStorage = new GenericRepository<FavTrackEntity>(
+      this.repositoryTrack,
+    );
   }
 
-  private storage: IGenericRepository<FavEntity>;
+  private artistStorage: IGenericRepository<FavArtistEntity>;
+  private albumStorage: IGenericRepository<FavAlbumEntity>;
+  private trackStorage: IGenericRepository<FavTrackEntity>;
 
   private favId: string;
 
@@ -49,9 +65,9 @@ export class FavsService {
       const favs = await this.getCommonFavs();
 
       const result: IFavoritesRepsonse = {
-        albums: await this.albumService.findManyByIds(favs.albums),
-        artists: await this.artistService.findManyByIds(favs.artists),
-        tracks: await this.trackService.findManyByIds(favs.tracks),
+        albums: await this.albumService.findManyByIds(favs.albumIds),
+        artists: await this.artistService.findManyByIds(favs.artistIds),
+        tracks: await this.trackService.findManyByIds(favs.trackIds),
       };
 
       return result;
@@ -74,14 +90,10 @@ export class FavsService {
     }
 
     try {
-      const originalFavs = await this.getCommonFavs();
-
-      const updatedFavs: IFav = {
-        ...originalFavs,
-        tracks: [...originalFavs.tracks, id],
-      };
-
-      await this.storage.updateById(this.favId, updatedFavs);
+      await this.trackStorage.create({
+        id: this.favId,
+        entityId: id,
+      });
     } catch (error) {
       throw error;
     }
@@ -91,14 +103,7 @@ export class FavsService {
     try {
       await validateIsUUID(id);
 
-      const originalFavs = await this.getCommonFavs();
-
-      const updatedFavs: IFav = {
-        ...originalFavs,
-        tracks: originalFavs.tracks.filter((el) => el !== id),
-      };
-
-      await this.storage.updateById(this.favId, updatedFavs);
+      await this.trackStorage.removeBy('entityId', id);
     } catch (error) {
       throw error;
     }
@@ -118,13 +123,10 @@ export class FavsService {
     }
 
     try {
-      const originalFavs = await this.storage.findById(this.favId);
-      const updatedFavs: IFav = {
-        ...originalFavs,
-        albums: [...originalFavs.albums, id],
-      };
-
-      await this.storage.updateById(this.favId, updatedFavs);
+      await this.albumStorage.create({
+        id: this.favId,
+        entityId: id,
+      });
     } catch (error) {
       throw error;
     }
@@ -134,14 +136,7 @@ export class FavsService {
     try {
       await validateIsUUID(id);
 
-      const originalFavs = await this.getCommonFavs();
-
-      const updatedFavs: IFav = {
-        ...originalFavs,
-        albums: originalFavs.albums.filter((el) => el !== id),
-      };
-
-      await this.storage.updateById(this.favId, updatedFavs);
+      await this.albumStorage.removeBy('entityId', id);
     } catch (error) {
       throw error;
     }
@@ -161,32 +156,37 @@ export class FavsService {
     }
 
     try {
-      const originalFavs = await this.getCommonFavs();
-
-      const updatedFavs: IFav = {
-        ...originalFavs,
-        artists: [...originalFavs.artists, id],
-      };
-
-      await this.storage.updateById(this.favId, updatedFavs);
+      await this.artistStorage.create({
+        id: this.favId,
+        entityId: id,
+      });
     } catch (error) {
       throw error;
     }
   }
 
   async removeArtist(id: string) {
-    const originalFavs = await this.getCommonFavs();
+    try {
+      await validateIsUUID(id);
 
-    const updatedFavs: IFav = {
-      ...originalFavs,
-      artists: originalFavs.artists.filter((el) => el !== id),
-    };
-
-    await this.storage.updateById(this.favId, updatedFavs);
+      await this.artistStorage.removeBy('entityId', id);
+    } catch (error) {
+      throw error;
+    }
   }
 
   private async getCommonFavs() {
-    const favs = await this.storage.findById(this.favId);
+    const favs: IFavIdsCollection = {
+      artistIds: (await this.artistStorage.findManyByIds([this.favId])).map(
+        (el) => el.entityId,
+      ),
+      albumIds: (await this.albumStorage.findManyByIds([this.favId])).map(
+        (el) => el.entityId,
+      ),
+      trackIds: (await this.trackStorage.findManyByIds([this.favId])).map(
+        (el) => el.entityId,
+      ),
+    };
 
     return favs;
   }

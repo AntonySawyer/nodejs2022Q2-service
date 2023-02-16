@@ -1,21 +1,39 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-import { IAlbum } from 'src/albums/entities/album.interface';
-import { IArtist } from 'src/artists/entities/artist.interface';
-import { ITrack } from 'src/tracks/entities/track.interface';
-import { IFav } from './fav.interface';
+import { IFavAlbum, IFavArtist, IFavTrack } from './fav.interface';
+import { ArtistEntity } from 'src/artists/entities/artist.entity';
+import { AlbumEntity } from 'src/albums/entities/album.entity';
+import { TrackEntity } from 'src/tracks/entities/track.entity';
 
 @Entity()
-export class FavEntity implements IFav {
+export class FavArtistEntity implements IFavArtist {
   @PrimaryColumn()
   id: string;
 
-  @Column('uuid', { array: true })
-  artists: Array<IArtist['id']>;
+  @Column('uuid', {
+    nullable: false,
+  })
+  entityId: ArtistEntity['id'];
+}
 
-  @Column('uuid', { array: true })
-  albums: Array<IAlbum['id']>;
+@Entity()
+export class FavAlbumEntity implements IFavAlbum {
+  @PrimaryColumn()
+  id: string;
 
-  @Column('uuid', { array: true })
-  tracks: Array<ITrack['id']>;
+  @Column('uuid', {
+    nullable: false,
+  })
+  entityId: AlbumEntity['id'];
+}
+
+@Entity()
+export class FavTrackEntity implements IFavTrack {
+  @PrimaryColumn()
+  id: string;
+
+  @Column('uuid', {
+    nullable: false,
+  })
+  entityId: TrackEntity['id'];
 }

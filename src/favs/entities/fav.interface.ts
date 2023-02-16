@@ -1,15 +1,21 @@
 import { AlbumEntity } from 'src/albums/entities/album.entity';
-import { IAlbum } from 'src/albums/entities/album.interface';
 import { ArtistEntity } from 'src/artists/entities/artist.entity';
-import { IArtist } from 'src/artists/entities/artist.interface';
+import { EntityWithId } from 'src/shared/db/db.interface';
 import { TrackEntity } from 'src/tracks/entities/track.entity';
-import { ITrack } from 'src/tracks/entities/track.interface';
 
-export interface IFav {
+interface IFavFactory<TOriginalEntity extends EntityWithId> {
   id: string;
-  artists: Array<IArtist['id']>;
-  albums: Array<IAlbum['id']>;
-  tracks: Array<ITrack['id']>;
+  entityId: TOriginalEntity['id'];
+}
+
+export type IFavArtist = IFavFactory<ArtistEntity>;
+export type IFavAlbum = IFavFactory<AlbumEntity>;
+export type IFavTrack = IFavFactory<TrackEntity>;
+
+export interface IFavIdsCollection {
+  artistIds: IFavArtist['entityId'][];
+  albumIds: IFavAlbum['entityId'][];
+  trackIds: IFavTrack['entityId'][];
 }
 
 export interface IFavoritesRepsonse {

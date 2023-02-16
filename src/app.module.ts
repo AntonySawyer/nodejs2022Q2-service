@@ -12,7 +12,11 @@ import { UserEntity } from './users/entities/user.entity';
 import { ArtistEntity } from './artists/entities/artist.entity';
 import { AlbumEntity } from './albums/entities/album.entity';
 import { TrackEntity } from './tracks/entities/track.entity';
-import { FavEntity } from './favs/entities/fav.entity';
+import {
+  FavAlbumEntity,
+  FavArtistEntity,
+  FavTrackEntity,
+} from './favs/entities/fav.entity';
 
 const {
   POSTGRES_HOST,
@@ -34,7 +38,15 @@ const isDbFullLogEnabled = DB_FULL_LOG === 'true';
       username: POSTGRES_USER,
       password: POSTGRES_PASSWORD,
       database: POSTGRES_DB,
-      entities: [UserEntity, ArtistEntity, AlbumEntity, TrackEntity, FavEntity],
+      entities: [
+        UserEntity,
+        ArtistEntity,
+        AlbumEntity,
+        TrackEntity,
+        FavAlbumEntity,
+        FavArtistEntity,
+        FavTrackEntity,
+      ],
       synchronize: true,
       logging: isDbFullLogEnabled,
       logger: isDbFullLogEnabled ? 'advanced-console' : undefined,
