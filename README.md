@@ -13,12 +13,14 @@
 git clone https://github.com/AntonySawyer/nodejs2022Q4-service.git
 ```
 
-### 2) Add settings
+### 2) Checkout correct branch `feat/postgress-and-orm`
+
+### 3) Add settings
 
 1. create `.env` file and copy `.env.sample` values into this file (replace values, if needed)
 2. make sure that you are use correct version of node (`node -v` should return v18.\*\*.\*\*)
 
-### 3) Run app
+### 4) Run app
 
 > You have two options for run: with or without Docker. Recommended way - run using Docker.
 
@@ -27,19 +29,19 @@ git clone https://github.com/AntonySawyer/nodejs2022Q4-service.git
 <details>
   <summary>How run app without Docker (click arrow for expand steps)</summary>
 
-#### 3.1) Installing NPM modules
+#### 4.1) Installing NPM modules
 
 ```
 npm install
 ```
 
-#### 3.2) Running application
+#### 4.2) Running application
 
 ```
 npm start
 ```
 
-#### 3.3) Check
+#### 4.3) Check
 
 > [Go to `Check if it works` section](#check-if-it-works)
 
@@ -50,13 +52,13 @@ npm start
 
 > It's recommended way.
 
-#### 3.1) Install Docker
+#### 4.1) Install Docker
 
 > If you already setup Docker earlier - skip this step.
 
 Go to the official docs for install [Docker](https://docs.docker.com/engine/install/).
 
-#### 3.2) Run app
+#### 4.2) Run app
 
 ```shell
 docker-compose up
@@ -74,7 +76,7 @@ docker-compose up
 
 <br />
 
-#### 3.3) Check
+#### 4.3) Check
 
 > [Go to `Check if it works` section](#check-if-it-works)
 
