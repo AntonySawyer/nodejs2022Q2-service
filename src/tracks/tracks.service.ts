@@ -13,6 +13,7 @@ import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
+import { FAV_TYPE } from 'src/favs/entities/fav.interface';
 
 @Injectable()
 export class TracksService {
@@ -116,7 +117,7 @@ export class TracksService {
 
       await this.storage.removeById(id);
 
-      await this.favsService.removeTrack(id);
+      await this.favsService.removeEntity(FAV_TYPE.TRACK, id);
     } catch (error) {
       throw error;
     }

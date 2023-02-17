@@ -61,7 +61,7 @@ export class GenericRepository<TType extends EntityWithId>
         throw new NotFoundError('Not found');
       }
 
-      await this.removeBy('id', id);
+      await this.removeBy({ id } as FindOptionsWhere<TType>);
     } catch (error) {
       const isNotFoundError = error instanceof NotFoundError;
 
@@ -73,11 +73,9 @@ export class GenericRepository<TType extends EntityWithId>
     }
   }
 
-  public async removeBy(field: string, value: string): Promise<void> {
+  public async removeBy(condition: FindOptionsWhere<TType>): Promise<void> {
     try {
-      await this.storage.delete({
-        [field]: value,
-      } as FindOptionsWhere<TType>);
+      await this.storage.delete(condition);
     } catch (error) {
       throw error;
     }

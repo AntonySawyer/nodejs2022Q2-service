@@ -10,14 +10,12 @@ import { UnprocessableError } from 'src/shared/error/UnprocessableError';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { TracksService } from 'src/tracks/tracks.service';
 import {
+  FAV_TYPE,
+  IFavIds,
   IFavIdsCollection,
   IFavoritesRepsonse,
 } from './entities/fav.interface';
-import {
-  FavAlbumEntity,
-  FavArtistEntity,
-  FavTrackEntity,
-} from './entities/fav.entity';
+import { FavEntity } from './entities/fav.entity';
 
 @Injectable()
 export class FavsService {
@@ -31,32 +29,16 @@ export class FavsService {
     @Inject(forwardRef(() => ArtistsService))
     private artistService: ArtistsService,
 
-    @InjectRepository(FavArtistEntity)
-    private repositoryArtist: Repository<FavArtistEntity>,
-
-    @InjectRepository(FavAlbumEntity)
-    private repositoryAlbum: Repository<FavAlbumEntity>,
-
-    @InjectRepository(FavTrackEntity)
-    private repositoryTrack: Repository<FavTrackEntity>,
+    @InjectRepository(FavEntity)
+    private repository: Repository<FavEntity>,
   ) {
     const USER_ID = 'common-id-for-each-user-by-requirements';
 
     this.favId = USER_ID;
-    this.artistStorage = new GenericRepository<FavArtistEntity>(
-      this.repositoryArtist,
-    );
-    this.albumStorage = new GenericRepository<FavAlbumEntity>(
-      this.repositoryAlbum,
-    );
-    this.trackStorage = new GenericRepository<FavTrackEntity>(
-      this.repositoryTrack,
-    );
+    this.storage = new GenericRepository<FavEntity>(this.repository);
   }
 
-  private artistStorage: IGenericRepository<FavArtistEntity>;
-  private albumStorage: IGenericRepository<FavAlbumEntity>;
-  private trackStorage: IGenericRepository<FavTrackEntity>;
+  private storage: IGenericRepository<FavEntity>;
 
   private favId: string;
 
@@ -76,118 +58,85 @@ export class FavsService {
     }
   }
 
-  async addTrack(id: string) {
+  async addEntity(entityType: FAV_TYPE, entityId: string) {
     try {
-      await validateIsUUID(id);
+      await validateIsUUID(entityId);
     } catch (error) {
       throw error;
     }
 
     try {
-      await this.trackService.findOne(id);
+      const entityService = this.getServiceByEntity(entityType);
+
+      await entityService.findOne(entityId);
     } catch (error) {
       throw new UnprocessableError('Try other id');
     }
 
     try {
-      await this.trackStorage.create({
+      await this.storage.create({
         id: this.favId,
-        entityId: id,
+        entityId,
+        type: entityType,
       });
     } catch (error) {
       throw error;
     }
   }
 
-  async removeTrack(id: string) {
+  async removeEntity(entityType: FAV_TYPE, entityId: string) {
     try {
-      await validateIsUUID(id);
+      await validateIsUUID(entityId);
 
-      await this.trackStorage.removeBy('entityId', id);
+      await this.storage.removeBy({ entityId, type: entityType });
     } catch (error) {
       throw error;
     }
   }
 
-  async addAlbum(id: string) {
-    try {
-      await validateIsUUID(id);
-    } catch (error) {
-      throw error;
-    }
+  private getServiceByEntity(entityType: FAV_TYPE) {
+    switch (entityType) {
+      case FAV_TYPE.ARTIST:
+        return this.artistService;
 
-    try {
-      await this.albumService.findOne(id);
-    } catch (error) {
-      throw new UnprocessableError('Try other id');
-    }
+      case FAV_TYPE.ALBUM:
+        return this.albumService;
 
-    try {
-      await this.albumStorage.create({
-        id: this.favId,
-        entityId: id,
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
+      case FAV_TYPE.TRACK:
+        return this.trackService;
 
-  async removeAlbum(id: string) {
-    try {
-      await validateIsUUID(id);
-
-      await this.albumStorage.removeBy('entityId', id);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async addArtist(id: string) {
-    try {
-      await validateIsUUID(id);
-    } catch (error) {
-      throw error;
-    }
-
-    try {
-      await this.artistService.findOne(id);
-    } catch (error) {
-      throw new UnprocessableError('Try other id');
-    }
-
-    try {
-      await this.artistStorage.create({
-        id: this.favId,
-        entityId: id,
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async removeArtist(id: string) {
-    try {
-      await validateIsUUID(id);
-
-      await this.artistStorage.removeBy('entityId', id);
-    } catch (error) {
-      throw error;
+      default:
+        break;
     }
   }
 
   private async getCommonFavs() {
-    const favs: IFavIdsCollection = {
-      artistIds: (await this.artistStorage.findManyByIds([this.favId])).map(
-        (el) => el.entityId,
-      ),
-      albumIds: (await this.albumStorage.findManyByIds([this.favId])).map(
-        (el) => el.entityId,
-      ),
-      trackIds: (await this.trackStorage.findManyByIds([this.favId])).map(
-        (el) => el.entityId,
-      ),
+    const favsCollection: IFavIdsCollection = await this.storage.findManyByIds([
+      this.favId,
+    ]);
+
+    const favsIds: IFavIds = {
+      artistIds: [],
+      albumIds: [],
+      trackIds: [],
     };
 
-    return favs;
+    favsCollection.forEach((entity) => {
+      switch (entity.type) {
+        case FAV_TYPE.ARTIST:
+          favsIds.artistIds.push(entity.entityId);
+          break;
+        case FAV_TYPE.ALBUM:
+          favsIds.albumIds.push(entity.entityId);
+          break;
+        case FAV_TYPE.TRACK:
+          favsIds.trackIds.push(entity.entityId);
+          break;
+        default:
+          break;
+      }
+    });
+
+    return favsIds;
   }
 }

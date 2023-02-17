@@ -1,39 +1,21 @@
+import { EntityWithId } from 'src/shared/db/db.interface';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-import { IFavAlbum, IFavArtist, IFavTrack } from './fav.interface';
-import { ArtistEntity } from 'src/artists/entities/artist.entity';
-import { AlbumEntity } from 'src/albums/entities/album.entity';
-import { TrackEntity } from 'src/tracks/entities/track.entity';
+import { FAV_TYPE, IFavEntity } from './fav.interface';
 
 @Entity()
-export class FavArtistEntity implements IFavArtist {
+export class FavEntity implements IFavEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column('uuid', {
+  @Column({
+    type: 'enum',
+    enum: FAV_TYPE,
+  })
+  type: FAV_TYPE;
+
+  @PrimaryColumn('uuid', {
     nullable: false,
   })
-  entityId: ArtistEntity['id'];
-}
-
-@Entity()
-export class FavAlbumEntity implements IFavAlbum {
-  @PrimaryColumn()
-  id: string;
-
-  @Column('uuid', {
-    nullable: false,
-  })
-  entityId: AlbumEntity['id'];
-}
-
-@Entity()
-export class FavTrackEntity implements IFavTrack {
-  @PrimaryColumn()
-  id: string;
-
-  @Column('uuid', {
-    nullable: false,
-  })
-  entityId: TrackEntity['id'];
+  entityId: EntityWithId['id'];
 }

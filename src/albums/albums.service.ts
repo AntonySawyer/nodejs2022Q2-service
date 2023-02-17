@@ -13,6 +13,7 @@ import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { FAV_TYPE } from 'src/favs/entities/fav.interface';
 
 @Injectable()
 export class AlbumsService {
@@ -116,7 +117,7 @@ export class AlbumsService {
 
       await this.storage.removeById(id);
 
-      await this.favsService.removeAlbum(id);
+      await this.favsService.removeEntity(FAV_TYPE.ALBUM, id);
     } catch (error) {
       throw error;
     }

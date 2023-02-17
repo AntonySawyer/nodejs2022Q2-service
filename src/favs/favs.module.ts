@@ -6,11 +6,7 @@ import { FavsController } from './favs.controller';
 import { TracksModule } from 'src/tracks/tracks.module';
 import { ArtistsModule } from 'src/artists/artists.module';
 import { AlbumsModule } from 'src/albums/albums.module';
-import {
-  FavAlbumEntity,
-  FavArtistEntity,
-  FavTrackEntity,
-} from './entities/fav.entity';
+import { FavEntity } from './entities/fav.entity';
 
 @Module({
   controllers: [FavsController],
@@ -19,7 +15,7 @@ import {
     forwardRef(() => ArtistsModule),
     forwardRef(() => TracksModule),
     forwardRef(() => AlbumsModule),
-    TypeOrmModule.forFeature([FavAlbumEntity, FavArtistEntity, FavTrackEntity]),
+    TypeOrmModule.forFeature([FavEntity]),
   ],
   exports: [FavsService],
 })
