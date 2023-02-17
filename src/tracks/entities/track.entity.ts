@@ -6,7 +6,7 @@ import { ITrack } from './track.interface';
 
 @Entity()
 export class TrackEntity implements ITrack {
-  @PrimaryColumn({ generated: 'uuid' })
+  @PrimaryColumn('uuid', { generated: 'uuid' })
   id: string;
 
   @Column()

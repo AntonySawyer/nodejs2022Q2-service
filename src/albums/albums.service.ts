@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 import { isUUID } from 'class-validator';
@@ -10,17 +10,12 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FAV_TYPE } from 'src/favs/entities/fav.interface';
 
 @Injectable()
 export class AlbumsService {
   constructor(
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
-
     @InjectRepository(AlbumEntity)
     private repository: Repository<AlbumEntity>,
   ) {
@@ -116,8 +111,6 @@ export class AlbumsService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      await this.favsService.removeEntity(FAV_TYPE.ALBUM, id);
     } catch (error) {
       throw error;
     }

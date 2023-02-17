@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -9,18 +9,13 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { ITrack } from './entities/track.interface';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { FavsService } from 'src/favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
-import { FAV_TYPE } from 'src/favs/entities/fav.interface';
 
 @Injectable()
 export class TracksService {
   constructor(
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
-
     @InjectRepository(TrackEntity)
     private repository: Repository<TrackEntity>,
   ) {
@@ -116,8 +111,6 @@ export class TracksService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      await this.favsService.removeEntity(FAV_TYPE.TRACK, id);
     } catch (error) {
       throw error;
     }

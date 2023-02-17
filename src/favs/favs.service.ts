@@ -74,11 +74,16 @@ export class FavsService {
     }
 
     try {
-      await this.storage.create({
+      const newEntity: FavEntity = {
         id: this.favId,
-        entityId,
         type: entityType,
-      });
+        entityId,
+        artistId: entityType === FAV_TYPE.ARTIST ? entityId : null,
+        albumId: entityType === FAV_TYPE.ALBUM ? entityId : null,
+        trackId: entityType === FAV_TYPE.TRACK ? entityId : null,
+      };
+
+      await this.storage.create(newEntity);
     } catch (error) {
       throw error;
     }
