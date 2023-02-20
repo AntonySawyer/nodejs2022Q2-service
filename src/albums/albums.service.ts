@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 import { isUUID } from 'class-validator';
+import { Repository } from 'typeorm';
 
-import { IGenericRepository } from 'src/shared/db/db.interface';
-import { GenericRepository } from 'src/shared/db/genericRepository';
+import { IGenericRepository } from '../shared/db/db.interface';
+import { GenericRepository } from '../shared/db/genericRepository';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
-import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { validateIsUUID } from '../shared/utils/validateIsUUID';
 
 @Injectable()
 export class AlbumsService {

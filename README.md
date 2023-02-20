@@ -20,37 +20,7 @@ git clone https://github.com/AntonySawyer/nodejs2022Q4-service.git
 1. create `.env` file and copy `.env.sample` values into this file (replace values, if needed)
 2. make sure that you are use correct version of node (`node -v` should return v18.\*\*.\*\*)
 
-### 4) Run app
-
-> You have two options for run: with or without Docker. Recommended way - run using Docker.
-
-### Without Docker _(not recomended)_
-
-<details>
-  <summary>How run app without Docker (click arrow for expand steps)</summary>
-
-#### 4.1) Installing NPM modules
-
-```
-npm install
-```
-
-#### 4.2) Running application
-
-```
-npm start
-```
-
-#### 4.3) Check
-
-> [Go to `Check if it works` section](#check-if-it-works)
-
-</details>
-<br>
-
-### Run with Docker
-
-> It's recommended way.
+### 4) Run app with Docker
 
 #### 4.1) Install Docker
 
@@ -58,13 +28,13 @@ npm start
 
 Go to the official docs for install [Docker](https://docs.docker.com/engine/install/).
 
-#### 4.2) Run app
+#### 4.2) Build and run app
 
 ```shell
 docker-compose up
 ```
 
-#### Common troubles with run:
+#### Possible troubles with run:
 
 1. `ERROR: for db  Cannot create container for service postgress: Conflict. The container name "/db" is already in use by container`
    > `db` can be replaced with `app` - error can be resolved in same way.
@@ -95,49 +65,42 @@ docker-compose up
 
 ## Testing
 
-> All commands valid for both options to run. If you use [Run with Docker](#run-with-docker) option, you should run those commands inside container.
-> You can simply add `docker exec app` before command. For example, to run **tests** use next command:
-
-```
-  docker exec app npm run test
-```
-
-> If you or your system use different names - replace `app` with updated name or target `CONTAINER_ID` (You could see it after run command `docker ps`)
+> If you or your system use different names - replace `app` in all commands with updated name or target `CONTAINER_ID` (You could see it after run command `docker ps`)
 
 After application running open new terminal and enter:
 
 To run all tests without authorization
 
 ```
-npm run test
+docker exec app npm run test
 ```
 
 To run only one of all test suites
 
 ```
-npm run test -- <path to suite>
+docker exec app npm run test -- <path to suite>
 ```
 
 To run all test with authorization
 
 ```
-npm run test:auth
+docker exec app npm run test:auth
 ```
 
 To run only specific test suite with authorization
 
 ```
-npm run test:auth -- <path to suite>
+docker exec app npm run test:auth -- <path to suite>
 ```
 
 ### Auto-fix and format
 
 ```
-npm run lint
+docker exec app npm run lint
 ```
 
 ```
-npm run format
+docker exec app npm run format
 ```
 
 ### Debugging in VSCode

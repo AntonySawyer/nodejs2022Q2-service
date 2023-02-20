@@ -3,6 +3,8 @@ import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
 import { v4 as uuidV4 } from 'uuid';
 import { instanceToPlain, plainToClass } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,8 +12,6 @@ import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
 import { AuthError } from 'src/shared/error/AuthError';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {

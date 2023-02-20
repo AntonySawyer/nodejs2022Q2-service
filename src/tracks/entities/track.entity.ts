@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-import { AlbumEntity } from 'src/albums/entities/album.entity';
-import { ArtistEntity } from 'src/artists/entities/artist.entity';
+import { AlbumEntity } from '../../albums/entities/album.entity';
+import { ArtistEntity } from '../../artists/entities/artist.entity';
 import { ITrack } from './track.interface';
 
 @Entity()

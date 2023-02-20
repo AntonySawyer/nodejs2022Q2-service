@@ -1,8 +1,9 @@
-import { AlbumEntity } from 'src/albums/entities/album.entity';
-import { ArtistEntity } from 'src/artists/entities/artist.entity';
-import { EntityWithId } from 'src/shared/db/db.interface';
-import { TrackEntity } from 'src/tracks/entities/track.entity';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+
+import { AlbumEntity } from '../../albums/entities/album.entity';
+import { ArtistEntity } from '../../artists/entities/artist.entity';
+import { EntityWithId } from '../../shared/db/db.interface';
+import { TrackEntity } from '../../tracks/entities/track.entity';
 
 import { FAV_TYPE, IFavEntity } from './fav.interface';
 
