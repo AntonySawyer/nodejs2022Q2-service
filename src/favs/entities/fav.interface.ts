@@ -15,13 +15,22 @@ export interface IFavEntity {
   entityId: EntityWithId['id'];
 }
 
-export type IFavIdsCollection = IFavEntity[];
-
-export interface IFavIds {
-  artistIds: ArtistEntity['id'][];
-  albumIds: AlbumEntity['id'][];
-  trackIds: TrackEntity['id'][];
-}
+export type IFavEntityEager = {
+  id: string;
+} & (
+  | {
+      type: FAV_TYPE.ARTIST;
+      artist: ArtistEntity;
+    }
+  | {
+      type: FAV_TYPE.ALBUM;
+      album: AlbumEntity;
+    }
+  | {
+      type: FAV_TYPE.TRACK;
+      track: TrackEntity;
+    }
+);
 
 export interface IFavoritesRepsonse {
   artists: ArtistEntity[];

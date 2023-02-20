@@ -26,26 +26,26 @@ export class FavEntity implements IFavEntity {
   @ManyToOne(() => ArtistEntity, (artist) => artist.id, {
     onDelete: 'CASCADE',
     nullable: true,
-    eager: false,
+    eager: true,
   })
   @JoinColumn({ name: 'artistId', referencedColumnName: 'id' })
-  artistId: string | null;
+  artist: string | null;
 
   @Column('uuid', { nullable: true })
   @ManyToOne(() => AlbumEntity, (album) => album.id, {
     onDelete: 'CASCADE',
     nullable: true,
-    eager: false,
+    eager: true,
   })
   @JoinColumn({ name: 'albumId', referencedColumnName: 'id' })
-  albumId: string | null;
+  album: string | null;
 
   @Column('uuid', { nullable: true })
   @ManyToOne(() => TrackEntity, (track) => track.id, {
     onDelete: 'CASCADE',
     nullable: true,
-    eager: false,
+    eager: true,
   })
   @JoinColumn({ name: 'trackId', referencedColumnName: 'id' })
-  trackId: string | null;
+  track: string | null;
 }

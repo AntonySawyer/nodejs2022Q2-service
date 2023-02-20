@@ -11,8 +11,7 @@ import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { TracksService } from 'src/tracks/tracks.service';
 import {
   FAV_TYPE,
-  IFavIds,
-  IFavIdsCollection,
+  IFavEntityEager,
   IFavoritesRepsonse,
 } from './entities/fav.interface';
 import { FavEntity } from './entities/fav.entity';
@@ -44,15 +43,34 @@ export class FavsService {
 
   async findAll() {
     try {
-      const favs = await this.getCommonFavs();
+      const favsCollection: IFavEntityEager[] =
+        (await this.storage.findManyByIds([
+          this.favId,
+        ])) as unknown as IFavEntityEager[];
 
-      const result: IFavoritesRepsonse = {
-        albums: await this.albumService.findManyByIds(favs.albumIds),
-        artists: await this.artistService.findManyByIds(favs.artistIds),
-        tracks: await this.trackService.findManyByIds(favs.trackIds),
+      const favorites: IFavoritesRepsonse = {
+        artists: [],
+        albums: [],
+        tracks: [],
       };
 
-      return result;
+      favsCollection.forEach((fav) => {
+        switch (fav.type) {
+          case FAV_TYPE.ARTIST:
+            favorites.artists.push(fav.artist);
+            break;
+          case FAV_TYPE.ALBUM:
+            favorites.albums.push(fav.album);
+            break;
+          case FAV_TYPE.TRACK:
+            favorites.tracks.push(fav.track);
+            break;
+          default:
+            break;
+        }
+      });
+
+      return favorites;
     } catch (error) {
       throw error;
     }
@@ -78,9 +96,9 @@ export class FavsService {
         id: this.favId,
         type: entityType,
         entityId,
-        artistId: entityType === FAV_TYPE.ARTIST ? entityId : null,
-        albumId: entityType === FAV_TYPE.ALBUM ? entityId : null,
-        trackId: entityType === FAV_TYPE.TRACK ? entityId : null,
+        artist: entityType === FAV_TYPE.ARTIST ? entityId : null,
+        album: entityType === FAV_TYPE.ALBUM ? entityId : null,
+        track: entityType === FAV_TYPE.TRACK ? entityId : null,
       };
 
       await this.storage.create(newEntity);
@@ -113,35 +131,5 @@ export class FavsService {
       default:
         break;
     }
-  }
-
-  private async getCommonFavs() {
-    const favsCollection: IFavIdsCollection = await this.storage.findManyByIds([
-      this.favId,
-    ]);
-
-    const favsIds: IFavIds = {
-      artistIds: [],
-      albumIds: [],
-      trackIds: [],
-    };
-
-    favsCollection.forEach((entity) => {
-      switch (entity.type) {
-        case FAV_TYPE.ARTIST:
-          favsIds.artistIds.push(entity.entityId);
-          break;
-        case FAV_TYPE.ALBUM:
-          favsIds.albumIds.push(entity.entityId);
-          break;
-        case FAV_TYPE.TRACK:
-          favsIds.trackIds.push(entity.entityId);
-          break;
-        default:
-          break;
-      }
-    });
-
-    return favsIds;
   }
 }
