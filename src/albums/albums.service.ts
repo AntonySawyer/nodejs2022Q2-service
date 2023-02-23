@@ -12,14 +12,18 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { AlbumEntity } from './entities/album.entity';
 import { IAlbum } from './entities/album.interface';
 import { validateIsUUID } from '../shared/utils/validateIsUUID';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class AlbumsService {
   constructor(
     @InjectRepository(AlbumEntity)
     private repository: Repository<AlbumEntity>,
+
+    private loggingService: LoggingService,
   ) {
     this.storage = new GenericRepository<AlbumEntity>(this.repository);
+    this.loggingService.setContext(AlbumsService.name);
   }
 
   private storage: IGenericRepository<AlbumEntity>;
