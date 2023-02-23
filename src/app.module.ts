@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
@@ -9,7 +9,6 @@ import { AlbumsModule } from './albums/albums.module';
 import { ArtistsModule } from './artists/artists.module';
 import { FavsModule } from './favs/favs.module';
 import { ORM_OPTIONS } from './shared/db/ormConfig';
-import { AppLoggerMiddleware } from './shared/utils/logger/appLogger.middleware';
 import { AppLoggerModule } from './shared/utils/logger/appLogger.module';
 
 @Module({
@@ -25,11 +24,4 @@ import { AppLoggerModule } from './shared/utils/logger/appLogger.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(AppLoggerMiddleware).forRoutes({
-      method: RequestMethod.ALL,
-      path: '*',
-    });
-  }
-}
+export class AppModule {}
