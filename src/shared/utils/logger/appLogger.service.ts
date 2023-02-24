@@ -49,18 +49,20 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
 
         const request = payload as unknown as Request;
 
-        this.log('New Request accepted');
-        this.log(`Method: ${request.method}`);
-        this.log(`Url: ${request.url}`);
+        const requestMessageForLogs = [];
+
+        requestMessageForLogs.push('New Request accepted');
+        requestMessageForLogs.push(`Method: ${request.method}`);
+        requestMessageForLogs.push(`Url: ${request.url}`);
 
         if (request?.body && Object.keys(request.body).length !== 0) {
-          this.log('Body:');
-          this.log(JSON.stringify(request.body));
+          requestMessageForLogs.push('Body:');
+          requestMessageForLogs.push(JSON.stringify(request.body));
         } else {
-          this.log('Body is empty');
+          requestMessageForLogs.push('Body is empty');
         }
 
-        this.logEndOfBlock();
+        this.log(requestMessageForLogs.join('\n'));
         break;
 
       case AppLoggerHTTPMessageType.RESPONSE:
@@ -71,22 +73,24 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
         const response = payload as Response;
         const shouldLogFullBody = process.env.LOG_FULL_RESPONSE_BODY === 'true';
 
-        this.log('New Response send');
-        this.log(`Status code: ${response.statusCode}`);
+        const responseMessageForLogs = [];
+
+        responseMessageForLogs.push('New Response send');
+        responseMessageForLogs.push(`Status code: ${response.statusCode}`);
 
         if (shouldLogFullBody) {
           const { body } = data;
 
           if (body && Object.keys(body).length !== 0) {
-            this.log('Body:');
-            this.log(JSON.stringify(body));
+            responseMessageForLogs.push('Body:');
+            responseMessageForLogs.push(JSON.stringify(body));
           } else {
-            this.log('Body is empty');
+            responseMessageForLogs.push('Body is empty');
           }
         }
 
-        this.log(`Finished in ${data.time}ms`);
-        this.logEndOfBlock();
+        responseMessageForLogs.push(`Finished in ${data.time}ms`);
+        this.log(responseMessageForLogs.join('\n'));
 
         break;
 
@@ -122,34 +126,27 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
     this.logLine(`${this.getTimestamp()} - ${this.context} - ${message}`);
   }
 
-  error(message: Error | string) {
-    this.logLine(message as string);
-    this.errorLogFileWorker.addToFile(`${message}\n`);
+  async error(message: Error | string): Promise<void> {
+    await this.logLine(message as string);
+    await this.errorLogFileWorker.addToFile(message as string);
   }
 
   warn(message: string) {
     this.logLine('Warning:');
     this.logLine(message);
-    this.logEndOfBlock();
   }
 
   debug(message: string) {
     this.logLine('Debug:');
     this.logLine(message);
-    this.logEndOfBlock();
   }
 
   verbose(message: string) {
     this.logLine('Verbose:');
     this.logLine(message);
-    this.logEndOfBlock();
   }
 
-  private logLine(message: string): void {
-    this.fileWorker.addToFile(message);
-  }
-
-  private logEndOfBlock() {
-    this.logLine('\n');
+  private async logLine(message: string): Promise<void> {
+    await this.fileWorker.addToFile(message);
   }
 }
