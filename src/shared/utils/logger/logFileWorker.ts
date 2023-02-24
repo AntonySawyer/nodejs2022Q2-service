@@ -60,7 +60,7 @@ export class LogFileWorker {
     try {
       const filePath = this.getFullFilePath();
 
-      await fs.writeFile(filePath, '', { encoding: 'utf-8' });
+      await fs.writeFile(filePath, '', { encoding: 'utf-8', flag: 'a+' });
     } catch (error) {
       throw new Error(error);
     }
