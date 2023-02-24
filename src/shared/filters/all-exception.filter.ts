@@ -31,6 +31,12 @@ export class AllExceptionFilter implements ExceptionFilter {
   }
 
   catch(exception: Error | string, host: ArgumentsHost) {
+    if (!host.switchToHttp) {
+      this.loggingService.error(exception);
+
+      return;
+    }
+
     const isKnownError = exception instanceof AppError;
 
     if (isKnownError) {

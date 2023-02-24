@@ -1,5 +1,6 @@
 import {
   ConsoleLogger,
+  ConsoleLoggerOptions,
   Injectable,
   LoggerService,
   Scope,
@@ -10,9 +11,33 @@ import {
   AppLoggerHTTPMessageType,
   LoggingHTTPServiceParams,
 } from './appLogger.interface';
+import { LogFileWorker, LOG_FILE_DEFAULT } from './logFileWorker';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class LoggingService extends ConsoleLogger implements LoggerService {
+  constructor(context?: string, options?: ConsoleLoggerOptions) {
+    super(context, options);
+
+    const { LOG_FILE_PREFIX, ERROR_LOG_FILE_PREFIX } = process.env;
+
+    const logFileWorker = new LogFileWorker(
+      LOG_FILE_PREFIX ?? LOG_FILE_DEFAULT.FILE_PREFIX,
+    );
+    logFileWorker.init();
+
+    const errorLogFileWorker = new LogFileWorker(
+      ERROR_LOG_FILE_PREFIX ?? LOG_FILE_DEFAULT.ERROR_FILE_PREFIX,
+    );
+    errorLogFileWorker.init();
+
+    this.fileWorker = logFileWorker;
+    this.errorLogFileWorker = errorLogFileWorker;
+  }
+
+  private fileWorker: LogFileWorker;
+
+  private errorLogFileWorker: LogFileWorker;
+
   logHttp(data: LoggingHTTPServiceParams) {
     const { payload, type } = data;
 
@@ -72,16 +97,19 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
 
         const error = payload as unknown as AppError;
 
-        this.error('Request finished with error');
+        const errorMessageForLogs = [];
+
+        errorMessageForLogs.push('Request finished with error');
 
         if (error?.getStatus) {
-          this.error(`Status code: ${error?.getStatus()}`);
+          errorMessageForLogs.push(`Status code: ${error?.getStatus()}`);
         }
 
-        this.error(`Message: ${error.message}`);
+        errorMessageForLogs.push(`Message: ${error.message}`);
 
-        this.error(`Finished in ${data.time}ms`);
-        this.logEndOfBlock();
+        errorMessageForLogs.push(`Finished in ${data.time}ms`);
+
+        this.error(errorMessageForLogs.join('\n'));
 
         break;
 
@@ -95,7 +123,8 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
   }
 
   error(message: Error | string) {
-    this.logLine(message);
+    this.logLine(message as string);
+    this.errorLogFileWorker.addToFile(`${message}\n`);
   }
 
   warn(message: string) {
@@ -116,8 +145,8 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
     this.logEndOfBlock();
   }
 
-  private logLine(message: string | Error): void {
-    console.log(message);
+  private logLine(message: string): void {
+    this.fileWorker.addToFile(message);
   }
 
   private logEndOfBlock() {
