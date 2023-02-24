@@ -10,6 +10,7 @@ import { ArtistsModule } from './artists/artists.module';
 import { FavsModule } from './favs/favs.module';
 import { ORM_OPTIONS } from './shared/db/ormConfig';
 import { AppLoggerModule } from './shared/utils/logger/appLogger.module';
+import { AllExceptionFilter } from './shared/filters/all-exception.filter';
 
 @Module({
   imports: [
@@ -22,6 +23,12 @@ import { AppLoggerModule } from './shared/utils/logger/appLogger.module';
     AppLoggerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: 'APP_FILTER',
+      useClass: AllExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

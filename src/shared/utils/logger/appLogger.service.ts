@@ -72,15 +72,15 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
 
         const error = payload as unknown as AppError;
 
-        this.log('Response finished with error');
+        this.error('Request finished with error');
 
         if (error?.getStatus) {
-          this.log(`Status code: ${error?.getStatus()}`);
+          this.error(`Status code: ${error?.getStatus()}`);
         }
 
-        this.log(`Message: ${error.message}`);
+        this.error(`Message: ${error.message}`);
 
-        this.log(`Finished in ${data.time}ms`);
+        this.error(`Finished in ${data.time}ms`);
         this.logEndOfBlock();
 
         break;
@@ -90,27 +90,33 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
     }
   }
 
-  log(message: any, ...optionalParams: any[]) {
+  log(message: string) {
     this.logLine(`${this.getTimestamp()} - ${this.context} - ${message}`);
   }
 
-  error(message: any, ...optionalParams: any[]) {
-    this.logLine('error');
+  error(message: Error | string) {
+    this.logLine(message);
   }
 
-  warn(message: any, ...optionalParams: any[]) {
-    this.logLine('warn');
+  warn(message: string) {
+    this.logLine('Warning:');
+    this.logLine(message);
+    this.logEndOfBlock();
   }
 
-  debug(message: any, ...optionalParams: any[]) {
-    this.logLine('debug');
+  debug(message: string) {
+    this.logLine('Debug:');
+    this.logLine(message);
+    this.logEndOfBlock();
   }
 
-  verbose(message: any, ...optionalParams: any[]) {
-    this.logLine('verbose');
+  verbose(message: string) {
+    this.logLine('Verbose:');
+    this.logLine(message);
+    this.logEndOfBlock();
   }
 
-  private logLine(message: string): void {
+  private logLine(message: string | Error): void {
     console.log(message);
   }
 
