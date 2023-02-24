@@ -44,12 +44,14 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
         }
 
         const response = payload as Response;
-        const { body } = data;
+        const shouldLogFullBody = process.env.LOG_FULL_RESPONSE_BODY === 'true';
 
         this.log('New Response send');
         this.log(`Status code: ${response.statusCode}`);
 
-        if (process.env.LOG_FULL_RESPONSE_BODY) {
+        if (shouldLogFullBody) {
+          const { body } = data;
+
           if (body && Object.keys(body).length !== 0) {
             this.log('Body:');
             this.log(JSON.stringify(body));
@@ -71,7 +73,10 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
         const error = payload as unknown as AppError;
 
         this.log('Response finished with error');
-        this.log(`Status code: ${error.getStatus()}`);
+
+        if (error?.getStatus) {
+          this.log(`Status code: ${error?.getStatus()}`);
+        }
 
         this.log(`Message: ${error.message}`);
 

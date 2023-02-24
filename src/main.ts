@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 
 import { AppModule } from './app.module';
+import { BadRequestError } from './shared/error';
 import { DEFAULT_APP_PORT } from './shared/server/defaultPort';
 import { setupSwagger } from './shared/server/setupSwagger';
 import { AppLoggerInterceptor } from './shared/utils/logger/appLogger.interceptor';
@@ -25,6 +26,7 @@ async function bootstrap() {
       forbidUnknownValues: true,
       whitelist: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => new BadRequestError(JSON.stringify(errors)),
     }),
   );
 
