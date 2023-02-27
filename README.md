@@ -170,3 +170,54 @@ docker push antonysawyer/home-library:tagname
   > 3. Relaunch app starting from `docker-compose up`
 
     <br />
+
+### .env variables
+
+> `DB_FULL_LOG` - boolean
+
+if `true` - database logs will pass into console with full logs
+<br />
+
+> `LOG_FULL_RESPONSE_BODY` - boolean
+
+if `true` - logs files with common info will include full response body (even big arrays)
+<br />
+
+`LOG_FILE_PREFIX` - string
+
+filename pattern for logs file
+<br />
+
+`LOG_FILE_INDEX_DELIMETER` - string
+
+part of log file name, that will split filename pattern and extension
+<br />
+
+`LOG_FILE_ABSOLUTE_PATH_TO_DIR` - string
+
+path to folder, for store logs files
+<br />
+
+`LOG_FILE_SIZE_IN_BYTES` - number
+
+limit size of log files, in bytes
+<br />
+
+`ERROR_LOG_FILE_PREFIX`
+
+filename pattern for error only logs file
+<br />
+
+`LOG_LEVEL`- one of string:`'error' | 'warn' | 'verbose' | 'debug' | 'log'`
+
+detect current logging level:
+
+```ts
+  error: ['error'],
+  warn: ['error', 'warn'],
+  verbose: ['error', 'warn', 'verbose'],
+  debug: ['error', 'warn', 'verbose', 'debug'],
+  log: ['error', 'warn', 'verbose', 'debug', 'log'],
+```
+
+<br />
