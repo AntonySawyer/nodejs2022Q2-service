@@ -7,6 +7,7 @@ import { FavEntity } from '../../favs/entities/fav.entity';
 import { TrackEntity } from '../../tracks/entities/track.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 import Migrations from '../../../db/migrations';
+import { TokenEntity } from 'src/auth/entities/token.entity';
 
 config();
 
@@ -28,7 +29,14 @@ export const ORM_OPTIONS: TypeOrmModuleOptions = {
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
   database: POSTGRES_DB,
-  entities: [UserEntity, ArtistEntity, AlbumEntity, TrackEntity, FavEntity],
+  entities: [
+    UserEntity,
+    ArtistEntity,
+    AlbumEntity,
+    TrackEntity,
+    FavEntity,
+    TokenEntity,
+  ],
   migrations: Migrations,
   migrationsRun: true,
   logging: isDbFullLogEnabled,

@@ -19,6 +19,12 @@ export class GenericRepository<TType extends EntityWithId>
     return data;
   }
 
+  public async findOneBy(condition: FindOptionsWhere<TType>): Promise<TType> {
+    const data = await this.storage.findOneBy(condition);
+
+    return data;
+  }
+
   public async findManyByIds(ids: string[]): Promise<TType[]> {
     const data = await this.storage.find({
       where: {

@@ -5,6 +5,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,24 +13,42 @@ import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
 import { AuthError } from 'src/shared/error/AuthError';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private repository: Repository<UserEntity>,
+
+    private loggingService: LoggingService,
   ) {
     this.storage = new GenericRepository<UserEntity>(this.repository);
+    this.loggingService.setContext(UsersService.name);
+
+    const { CRYPT_SALT } = process.env;
+
+    this.cryptSalt = parseInt(CRYPT_SALT) ?? 10;
   }
+
+  private cryptSalt: number;
 
   private storage: IGenericRepository<UserEntity>;
 
   async create(createUserDto: CreateUserDto): Promise<IUserResponse> {
     const newId = uuidV4();
+
     const userInstance = plainToClass(UserEntity, {
       id: newId,
       ...createUserDto,
     });
+
+    const hashedPassword = await bcrypt.hash(
+      createUserDto.password,
+      this.cryptSalt,
+    );
+
+    userInstance.password = hashedPassword;
 
     const createdUserInstance = await this.storage.create(userInstance);
 
@@ -62,6 +81,16 @@ export class UsersService {
     }
   }
 
+  async findOneBy(field: string, value: string): Promise<UserEntity> {
+    try {
+      const user = await this.storage.findOneBy({ [field]: value });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
@@ -73,12 +102,22 @@ export class UsersService {
 
       const updatedUserInstance = plainToClass(UpdateUserDto, updateUserDto);
 
-      if (originalUser.password !== updatedUserInstance.oldPassword) {
+      const isPasswordMatch = await bcrypt.compare(
+        updatedUserInstance.oldPassword,
+        originalUser.password,
+      );
+
+      if (!isPasswordMatch) {
         throw new AuthError('Incorrect password');
       }
 
+      const hashedUpdatedNewPassword = await bcrypt.hash(
+        updateUserDto.newPassword,
+        this.cryptSalt,
+      );
+
       const userForUpdate: Partial<UserEntity> = {
-        password: updatedUserInstance.newPassword,
+        password: hashedUpdatedNewPassword,
         version: originalUser.version + 1,
       };
 

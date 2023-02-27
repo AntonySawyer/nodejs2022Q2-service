@@ -2,6 +2,7 @@ import { FindOptionsWhere } from 'typeorm';
 
 export interface IGenericRepository<TType extends EntityWithId> {
   find: () => Promise<TType[]>;
+  findOneBy: (condition: FindOptionsWhere<TType>) => Promise<TType | undefined>;
   findById: (id: string) => Promise<TType | undefined>;
   findManyByIds: (ids: string[]) => Promise<TType[]>;
   create: (entity: TType) => Promise<TType>;

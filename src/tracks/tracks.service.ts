@@ -12,14 +12,18 @@ import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class TracksService {
   constructor(
     @InjectRepository(TrackEntity)
     private repository: Repository<TrackEntity>,
+
+    private loggingService: LoggingService,
   ) {
     this.storage = new GenericRepository<TrackEntity>(this.repository);
+    this.loggingService.setContext(TracksService.name);
   }
 
   private storage: IGenericRepository<TrackEntity>;
