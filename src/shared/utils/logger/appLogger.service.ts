@@ -123,27 +123,44 @@ export class LoggingService extends ConsoleLogger implements LoggerService {
   }
 
   log(message: string) {
+    if (!this.isLevelEnabled('log')) {
+      return;
+    }
+
     this.logLine(`${this.getTimestamp()} - ${this.context} - ${message}`);
   }
 
   async error(message: Error | string): Promise<void> {
+    if (!this.isLevelEnabled('error')) {
+      return;
+    }
+
     await this.logLine(message as string);
     await this.errorLogFileWorker.addToFile(message as string);
   }
 
   warn(message: string) {
-    this.logLine('Warning:');
-    this.logLine(message);
+    if (!this.isLevelEnabled('warn')) {
+      return;
+    }
+
+    this.logLine(`Warning:\n ${message}`);
   }
 
   debug(message: string) {
-    this.logLine('Debug:');
-    this.logLine(message);
+    if (!this.isLevelEnabled('debug')) {
+      return;
+    }
+
+    this.logLine(`Debug:\n ${message}`);
   }
 
   verbose(message: string) {
-    this.logLine('Verbose:');
-    this.logLine(message);
+    if (!this.isLevelEnabled('verbose')) {
+      return;
+    }
+
+    this.logLine(`Verbose:\n ${message}`);
   }
 
   private async logLine(message: string): Promise<void> {
