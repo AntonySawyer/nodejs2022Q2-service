@@ -81,6 +81,16 @@ export class UsersService {
     }
   }
 
+  async findOneBy(field: string, value: string): Promise<UserEntity> {
+    try {
+      const user = await this.storage.findOneBy({ [field]: value });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
