@@ -154,6 +154,38 @@ paths:
                 description: JWT Token
         403:
           description: Incorrect login or password
+  /auth/refresh:
+    post:
+      tags:
+        - Refresh
+      summary: Refresh
+      description: Refresh and returns a JWT-token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: example
+              properties:
+                refreshToken:
+                  type: string
+                  description: RefreshToken
+              required:
+                - refreshToken
+      responses:
+        200:
+          description: Successful tokens pair.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                description: JWT Token
+        403:
+          description: Incorrect refresh token
   /auth/signup:
     post:
       tags:

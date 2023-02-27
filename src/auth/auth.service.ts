@@ -10,10 +10,16 @@ import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthError } from 'src/shared/error/AuthError';
-import { LoginResponse, SignUpResponse } from './entities/auth.interface';
+import {
+  LoginResponse,
+  RefreshTokenDecoded,
+  RefreshTokenRequest,
+  SignUpResponse,
+} from './entities/auth.interface';
 import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
 import { TokenEntity } from './entities/token.entity';
+import { UnauthorizedError } from 'src/shared/error/UnauthorizedError';
 
 @Injectable()
 export class AuthService {
@@ -115,6 +121,38 @@ export class AuthService {
       });
 
       await this.storage.create(tokenEntity);
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async refresh(body: RefreshTokenRequest): Promise<LoginResponse> {
+    try {
+      if (!body || !body.refreshToken) {
+        throw new UnauthorizedError('Refresh token body is invalid');
+      }
+
+      const { refreshToken: oldRefreshToken } = body;
+
+      const { id, exp: expiredIn } = this.jwtService.decode(
+        oldRefreshToken,
+      ) as RefreshTokenDecoded;
+
+      const isExpired = Date.now() - expiredIn < 0;
+
+      if (isExpired) {
+        throw new AuthError('Token expired');
+      }
+
+      const user = await this.usersService.findOne(id);
+
+      const accessToken = await this.createAccessToken(user.id, user.login);
+      const refreshToken = await this.createRefreshToken(accessToken);
 
       return {
         accessToken,

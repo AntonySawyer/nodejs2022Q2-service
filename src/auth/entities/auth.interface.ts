@@ -16,3 +16,12 @@ export interface TokenEntityInterface {
   refreshToken: string;
   createdAt: number;
 }
+
+export interface RefreshTokenRequest {
+  refreshToken: TokenEntityInterface['refreshToken'];
+}
+
+export interface RefreshTokenDecoded {
+  id: string;
+  exp: number;
+}
