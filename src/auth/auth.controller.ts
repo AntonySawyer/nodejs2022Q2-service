@@ -14,6 +14,7 @@ export class AuthController {
     return this.authService.signup(newUser);
   }
 
+  @HttpCode(StatusCodes.OK)
   @Post('login')
   login(@Body() loginData: LoginDto) {
     return this.authService.login(loginData);
