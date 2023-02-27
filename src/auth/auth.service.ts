@@ -7,8 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthError } from 'src/shared/error/AuthError';
-import { EntityWithId } from 'src/shared/db/db.interface';
-import { LoginResponse } from './entities/auth.interface';
+import { LoginResponse, SignUpResponse } from './entities/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,21 +15,31 @@ export class AuthService {
     private usersService: UsersService,
 
     private readonly jwtService: JwtService,
-  ) {}
+  ) {
+    const { TOKEN_EXPIRE_TIME } = process.env;
+
+    this.tokenExpiresInTime = TOKEN_EXPIRE_TIME;
+  }
+
+  private tokenExpiresInTime: string;
 
   private async createAccessToken(
     id: string,
     login: string,
   ): Promise<LoginResponse['accessToken']> {
-    const token = await this.jwtService.signAsync({
+    const tokenPayload = {
       id,
       login,
+    };
+
+    const token = await this.jwtService.signAsync(tokenPayload, {
+      expiresIn: this.tokenExpiresInTime,
     });
 
     return token;
   }
 
-  async signup({ password, login }: SignUpDto): Promise<EntityWithId> {
+  async signup({ password, login }: SignUpDto): Promise<SignUpResponse> {
     try {
       await this.usersService.findOneBy('login', login);
 
@@ -39,13 +48,15 @@ export class AuthService {
         password,
       });
 
-      return { id: newuser.id }; // TODO 'corresponding message'
+      return {
+        id: newuser.id,
+        message: 'User created',
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  // TODO: return - tokens
   async login({ password, login }: LoginDto): Promise<LoginResponse> {
     try {
       const user = (await this.usersService.findOneBy(
@@ -69,7 +80,7 @@ export class AuthService {
 
       return {
         accessToken,
-      }; // TODO: tokens + expiration time
+      };
     } catch (error) {
       throw error;
     }
