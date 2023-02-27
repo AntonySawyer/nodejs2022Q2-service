@@ -11,6 +11,7 @@ import { FavsModule } from './favs/favs.module';
 import { ORM_OPTIONS } from './shared/db/ormConfig';
 import { AppLoggerModule } from './shared/utils/logger/appLogger.module';
 import { AllExceptionFilter } from './shared/filters/all-exception.filter';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AllExceptionFilter } from './shared/filters/all-exception.filter';
     ArtistsModule,
     FavsModule,
     AppLoggerModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

@@ -12,7 +12,12 @@ export class AuthGuard implements CanActivate {
 
     const { SWAGGER_PATH } = process.env;
 
-    const unsecureRoutes = ['auth/signup', 'auth/login', SWAGGER_PATH, '/'];
+    const unsecureRoutes = [
+      '/auth/signup',
+      '/auth/login',
+      `/${SWAGGER_PATH}`,
+      '/',
+    ];
 
     const isSecureRequest = !unsecureRoutes.includes(request.path);
 
@@ -23,8 +28,7 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers[HEADER.AUTH];
 
     if (!authHeader) {
-      // TODO: throw own error here after implement auth routes
-      // return false;
+      return false;
     }
 
     // TODO: check token valid, etc; after implement auth routes

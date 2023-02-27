@@ -10,5 +10,6 @@ import { AppLoggerModule } from 'src/shared/utils/logger/appLogger.module';
   imports: [TypeOrmModule.forFeature([UserEntity]), AppLoggerModule],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}
