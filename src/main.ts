@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv';
 
 import { AppModule } from './app.module';
 import { BadRequestError } from './shared/error';
+import { AuthGuard } from './shared/guards/auth.guard';
 import { DEFAULT_APP_PORT } from './shared/server/defaultPort';
 import { setupSwagger } from './shared/server/setupSwagger';
 import { AppLoggerInterceptor } from './shared/utils/logger/appLogger.interceptor';
@@ -44,6 +45,8 @@ async function bootstrap() {
       }),
     ),
   );
+
+  app.useGlobalGuards(new AuthGuard());
 
   await app.listen(PORT || DEFAULT_APP_PORT);
 }
