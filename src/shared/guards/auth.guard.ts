@@ -1,6 +1,8 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
+
+import { AuthError } from '../error/AuthError';
 import { HEADER } from '../server/headers';
 
 @Injectable()
@@ -28,7 +30,7 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers[HEADER.AUTH];
 
     if (!authHeader) {
-      return false;
+      throw new AuthError('You should login before access this endpoint.');
     }
 
     // TODO: check token valid, etc; after implement auth routes

@@ -62,8 +62,6 @@ export class AuthService {
       )) as UserEntity;
 
       if (!user) {
-        // TODO status 403
-
         throw new AuthError('Such username not exist');
       }
 
@@ -72,7 +70,6 @@ export class AuthService {
       const isPasswordMatch = await bcrypt.compare(password, storedPassHash);
 
       if (!isPasswordMatch) {
-        // TODO status 403
         throw new AuthError('Incorrect password');
       }
 
