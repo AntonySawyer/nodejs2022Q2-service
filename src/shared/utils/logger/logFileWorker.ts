@@ -9,7 +9,7 @@ export const LOG_FILE_DEFAULT = {
   FILE_ABSOLUTE_PATH_TO_DIR: 'logs/',
 };
 
-const FILE_EXTENSION = '.txt';
+const FILE_EXTENSION = 'txt';
 
 export class LogFileWorker {
   constructor(filePrefix: string) {
@@ -23,7 +23,7 @@ export class LogFileWorker {
       ? Number(LOG_FILE_SIZE_IN_BYTES)
       : LOG_FILE_DEFAULT.SIZE_IN_BYTES;
     this.fileNamePrefix = filePrefix;
-    this.fileIndexDelimeter =
+    this.filePostfixDelimeter =
       LOG_FILE_INDEX_DELIMETER ?? LOG_FILE_DEFAULT.FILE_DELIMETER;
     this.fileDir =
       LOG_FILE_ABSOLUTE_PATH_TO_DIR ??
@@ -32,11 +32,11 @@ export class LogFileWorker {
 
   private fileSizeLimitInBytes: number;
 
-  private currentFileIndex: number;
+  private currentFilePostfix: number;
 
   private fileNamePrefix: string;
 
-  private fileIndexDelimeter: string;
+  private filePostfixDelimeter: string;
   private fileDir: string;
 
   public async init() {
@@ -46,20 +46,20 @@ export class LogFileWorker {
       const lastIndex = await this.getLastIndex();
 
       if (lastIndex === null) {
-        this.currentFileIndex = 0;
-        await this.createNewFile();
+        this.currentFilePostfix = 0;
+        const filePath = await this.getFullFilePath();
+
+        await this.createNewFile(filePath);
       } else {
-        this.currentFileIndex = lastIndex;
+        this.currentFilePostfix = lastIndex;
       }
     } catch (error) {
       throw error;
     }
   }
 
-  private async createNewFile() {
+  private async createNewFile(filePath: string) {
     try {
-      const filePath = this.getFullFilePath();
-
       await fs.writeFile(filePath, '', { encoding: 'utf-8', flag: 'a+' });
     } catch (error) {
       throw new Error(error);
@@ -68,27 +68,42 @@ export class LogFileWorker {
 
   async addToFile(data: string): Promise<void> {
     try {
-      const filePath = this.getFullFilePath();
+      const filePath = await this.getFullFilePath();
+      const isFileExist = await this.isFileExist(filePath);
 
-      await fs.appendFile(filePath, `${data}\n`);
+      if (!isFileExist) {
+        await this.createNewFile(filePath);
+        await this.addToFile(data);
 
-      await this.checkSize(filePath);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  private async checkSize(filePath: string): Promise<number> {
-    try {
-      const currentFileStat = await fs.stat(filePath);
-      const fileSizeInBytes = currentFileStat.size;
-
-      if (fileSizeInBytes > this.fileSizeLimitInBytes) {
-        this.currentFileIndex += 1;
-        await this.createNewFile();
+        return;
       }
 
-      return this.currentFileIndex;
+      const fileSize = await this.getFileSizeInBytes(filePath);
+      const stringSizeInBytes = Buffer.from(`${data}\n\n`).length;
+
+      if (fileSize + stringSizeInBytes > this.fileSizeLimitInBytes) {
+        const checkedPostfix = this.getPostfixFromPath(filePath);
+        const isFileCreationInProcess =
+          checkedPostfix !== this.currentFilePostfix;
+
+        if (isFileCreationInProcess) {
+          await this.addToFile(data);
+
+          return;
+        }
+
+        const newPostfix = this.currentFilePostfix + 1;
+
+        this.currentFilePostfix = newPostfix;
+        const newFilePath = this.updatePostfixInPath(filePath, newPostfix);
+
+        await this.createNewFile(newFilePath);
+        await this.addToFile(data);
+
+        return;
+      }
+
+      await fs.appendFile(filePath, `${data}\n\n`);
     } catch (error) {
       throw error;
     }
@@ -102,7 +117,7 @@ export class LogFileWorker {
       const fileNames = await fs.readdir(folderPath);
 
       fileNames.forEach((fileName) => {
-        const fileIndex = fileName.split(this.fileIndexDelimeter)[1];
+        const fileIndex = fileName.split(this.filePostfixDelimeter)[1];
 
         if (typeof fileIndex !== 'number') {
           return;
@@ -144,10 +159,44 @@ export class LogFileWorker {
     return pathToFolder;
   }
 
-  private getFullFilePath(): string {
-    const pathToFolder = this.getFullFilePathToFolder();
-    const relativePathToFile = `${pathToFolder}/${this.fileNamePrefix}${this.fileIndexDelimeter}${this.currentFileIndex}${FILE_EXTENSION}`;
+  private async isFileExist(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
 
-    return relativePathToFile;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private async getFileSizeInBytes(filePath: string): Promise<number> {
+    const currentFileStat = await fs.stat(filePath);
+    const fileSizeInBytes = currentFileStat.size;
+
+    return fileSizeInBytes;
+  }
+
+  private async getFullFilePath(): Promise<string> {
+    const pathToFolder = this.getFullFilePathToFolder();
+    const fileName = `${this.fileNamePrefix}${this.filePostfixDelimeter}${this.currentFilePostfix}`;
+    const filePath = `${pathToFolder}/${fileName}.${FILE_EXTENSION}`;
+
+    return filePath;
+  }
+
+  private updatePostfixInPath(filePath: string, newPostfix: number): string {
+    const [fileNameBeforePostfix] = filePath.split(this.filePostfixDelimeter);
+    const newFilePath = `${fileNameBeforePostfix}${this.filePostfixDelimeter}${newPostfix}.${FILE_EXTENSION}`;
+
+    return newFilePath;
+  }
+
+  private getPostfixFromPath(filePath: string): number {
+    const fileNameWithExtension = filePath.split(this.filePostfixDelimeter)[1];
+    const [filePostfixString] = fileNameWithExtension.split(FILE_EXTENSION);
+
+    const postfix = parseInt(filePostfixString);
+
+    return postfix;
   }
 }
