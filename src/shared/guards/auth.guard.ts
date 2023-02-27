@@ -33,7 +33,6 @@ export class AuthGuard implements CanActivate {
       throw new AuthError('You should login before access this endpoint.');
     }
 
-    // TODO: check token valid, etc; after implement auth routes
     return true;
   }
 }

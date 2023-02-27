@@ -15,6 +15,16 @@ export class InitMigration1676877435677 implements MigrationInterface {
     );
 
     await queryRunner.query(
+      `CREATE TABLE public.token_entity (
+        id uuid NOT NULL,
+        "accessToken" varchar NOT NULL,
+        "refreshToken" varchar NOT NULL,
+        "createdAt" timestamp NOT NULL DEFAULT now(),
+        CONSTRAINT "PK_687443f2a51af49b5472e2c5ddc" PRIMARY KEY (id)
+      );`,
+    );
+
+    await queryRunner.query(
       `CREATE TABLE public.artist_entity (
         id uuid NOT NULL DEFAULT uuid_generate_v4(),
         "name" text NOT NULL,
@@ -72,6 +82,8 @@ export class InitMigration1676877435677 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE public.user_entity`);
+
+    await queryRunner.query(`DROP TABLE public.token_entity`);
 
     await queryRunner.query(`DROP TABLE public.artist_entity`);
 
