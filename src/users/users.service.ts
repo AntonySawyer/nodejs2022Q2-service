@@ -12,14 +12,18 @@ import { UserEntity } from './entities/user.entity';
 import { IUserResponse } from './entities/user.interface';
 import { AuthError } from 'src/shared/error/AuthError';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private repository: Repository<UserEntity>,
+
+    private loggingService: LoggingService,
   ) {
     this.storage = new GenericRepository<UserEntity>(this.repository);
+    this.loggingService.setContext(UsersService.name);
   }
 
   private storage: IGenericRepository<UserEntity>;

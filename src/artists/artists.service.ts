@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 
 import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
@@ -9,17 +12,18 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { IArtist } from './entities/artist.interface';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { isUUID } from 'class-validator';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class ArtistsService {
   constructor(
     @InjectRepository(ArtistEntity)
     private repository: Repository<ArtistEntity>,
+
+    private loggingService: LoggingService,
   ) {
     this.storage = new GenericRepository<ArtistEntity>(this.repository);
+    this.loggingService.setContext(ArtistsService.name);
   }
 
   private storage: IGenericRepository<ArtistEntity>;

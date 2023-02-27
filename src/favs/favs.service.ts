@@ -15,6 +15,7 @@ import {
   IFavoritesRepsonse,
 } from './entities/fav.interface';
 import { FavEntity } from './entities/fav.entity';
+import { LoggingService } from 'src/shared/utils/logger/appLogger.service';
 
 @Injectable()
 export class FavsService {
@@ -30,11 +31,14 @@ export class FavsService {
 
     @InjectRepository(FavEntity)
     private repository: Repository<FavEntity>,
+
+    private loggingService: LoggingService,
   ) {
     const USER_ID = 'common-id-for-each-user-by-requirements';
 
     this.favId = USER_ID;
     this.storage = new GenericRepository<FavEntity>(this.repository);
+    this.loggingService.setContext(FavsService.name);
   }
 
   private storage: IGenericRepository<FavEntity>;
