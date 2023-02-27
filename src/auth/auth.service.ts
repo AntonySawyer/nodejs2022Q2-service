@@ -32,15 +32,7 @@ export class AuthService {
 
   async signup({ password, login }: SignUpDto): Promise<EntityWithId> {
     try {
-      const user = (await this.usersService.findOneBy(
-        'login',
-        login,
-      )) as UserEntity;
-
-      if (user) {
-        // TODO: are we need this check by current requirements? (check with tests)
-        // throw new error
-      }
+      await this.usersService.findOneBy('login', login);
 
       const newuser = await this.usersService.create({
         login,
