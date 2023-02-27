@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -9,15 +9,17 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackEntity } from './entities/track.entity';
 import { ITrack } from './entities/track.interface';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { FavsService } from 'src/favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class TracksService {
   constructor(
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
+    @InjectRepository(TrackEntity)
+    private repository: Repository<TrackEntity>,
   ) {
-    this.storage = new GenericRepository<TrackEntity>();
+    this.storage = new GenericRepository<TrackEntity>(this.repository);
   }
 
   private storage: IGenericRepository<TrackEntity>;
@@ -29,7 +31,7 @@ export class TracksService {
       ...createTrackDto,
     });
 
-    const createdInstance = await this.storage.create(newId, newInstance);
+    const createdInstance = await this.storage.create(newInstance);
 
     const plainCreatedEntity = instanceToPlain(createdInstance) as ITrack;
 
@@ -53,6 +55,18 @@ export class TracksService {
       const entity = await this.storage.findById(id);
 
       return entity;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findManyByIds(ids: string[]): Promise<TrackEntity[]> {
+    const validatedIds = ids.filter((id) => isUUID(id));
+
+    try {
+      const entities = await this.storage.findManyByIds(validatedIds);
+
+      return entities;
     } catch (error) {
       throw error;
     }
@@ -97,8 +111,6 @@ export class TracksService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      await this.favsService.removeTrack(id);
     } catch (error) {
       throw error;
     }

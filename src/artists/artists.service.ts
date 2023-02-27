@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { instanceToPlain, plainToClass } from 'class-transformer';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -8,20 +8,18 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { ArtistEntity } from './entities/artist.entity';
 import { IArtist } from './entities/artist.interface';
-import { TracksService } from 'src/tracks/tracks.service';
 import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
-import { FavsService } from 'src/favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class ArtistsService {
   constructor(
-    @Inject(forwardRef(() => TracksService))
-    private trackService: TracksService,
-
-    @Inject(forwardRef(() => FavsService))
-    private favsService: FavsService,
+    @InjectRepository(ArtistEntity)
+    private repository: Repository<ArtistEntity>,
   ) {
-    this.storage = new GenericRepository<ArtistEntity>();
+    this.storage = new GenericRepository<ArtistEntity>(this.repository);
   }
 
   private storage: IGenericRepository<ArtistEntity>;
@@ -33,7 +31,7 @@ export class ArtistsService {
       ...createArtistDto,
     });
 
-    const createdInstance = await this.storage.create(newId, newInstance);
+    const createdInstance = await this.storage.create(newInstance);
 
     const plainCreatedEntity = instanceToPlain(createdInstance) as IArtist;
 
@@ -57,6 +55,18 @@ export class ArtistsService {
       const entity = await this.storage.findById(id);
 
       return entity;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findManyByIds(ids: string[]): Promise<ArtistEntity[]> {
+    const validatedIds = ids.filter((id) => isUUID(id));
+
+    try {
+      const entities = await this.storage.findManyByIds(validatedIds);
+
+      return entities;
     } catch (error) {
       throw error;
     }
@@ -101,21 +111,6 @@ export class ArtistsService {
       await validateIsUUID(id);
 
       await this.storage.removeById(id);
-
-      const allTracks = await this.trackService.findAll();
-
-      const tracksFromArtist = allTracks.filter(
-        (track) => track.artistId === id,
-      );
-
-      tracksFromArtist.forEach(async (track) => {
-        await this.trackService.update(track.id, {
-          ...track,
-          artistId: null,
-        });
-      });
-
-      await this.favsService.removeArtist(id);
     } catch (error) {
       throw error;
     }

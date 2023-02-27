@@ -3,6 +3,8 @@ import { IGenericRepository } from 'src/shared/db/db.interface';
 import { GenericRepository } from 'src/shared/db/genericRepository';
 import { v4 as uuidV4 } from 'uuid';
 import { instanceToPlain, plainToClass } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -13,8 +15,11 @@ import { validateIsUUID } from 'src/shared/utils/validateIsUUID';
 
 @Injectable()
 export class UsersService {
-  constructor() {
-    this.storage = new GenericRepository<UserEntity>();
+  constructor(
+    @InjectRepository(UserEntity)
+    private repository: Repository<UserEntity>,
+  ) {
+    this.storage = new GenericRepository<UserEntity>(this.repository);
   }
 
   private storage: IGenericRepository<UserEntity>;
@@ -26,7 +31,7 @@ export class UsersService {
       ...createUserDto,
     });
 
-    const createdUserInstance = await this.storage.create(newId, userInstance);
+    const createdUserInstance = await this.storage.create(userInstance);
 
     const plainCreatedUser = instanceToPlain(
       createdUserInstance,
@@ -72,11 +77,9 @@ export class UsersService {
         throw new AuthError('Incorrect password');
       }
 
-      const userForUpdate: UserEntity = {
-        ...originalUser,
+      const userForUpdate: Partial<UserEntity> = {
         password: updatedUserInstance.newPassword,
         version: originalUser.version + 1,
-        updatedAt: Date.now(),
       };
 
       const updatedUserDbResponse = await this.storage.updateById(

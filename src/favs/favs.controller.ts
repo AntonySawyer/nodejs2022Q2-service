@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Param, Delete, HttpCode } from '@nestjs/common';
 
 import { FavsService } from './favs.service';
-import { EntityType } from './entities/fav.interface';
+import { FAV_TYPE } from './entities/fav.interface';
 import { StatusCodes } from 'http-status-codes';
 
 @Controller('favs')
@@ -14,37 +14,13 @@ export class FavsController {
   }
 
   @Post(':entity/:id')
-  create(@Param('entity') entity: EntityType, @Param('id') id: string) {
-    switch (entity) {
-      case 'album':
-        return this.favsService.addAlbum(id);
-
-      case 'artist':
-        return this.favsService.addArtist(id);
-
-      case 'track':
-        return this.favsService.addTrack(id);
-
-      default:
-        break;
-    }
+  create(@Param('entity') entity: FAV_TYPE, @Param('id') id: string) {
+    return this.favsService.addEntity(entity, id);
   }
 
   @Delete(':entity/:id')
   @HttpCode(StatusCodes.NO_CONTENT)
-  remove(@Param('entity') entity: EntityType, @Param('id') id: string) {
-    switch (entity) {
-      case 'album':
-        return this.favsService.removeAlbum(id);
-
-      case 'artist':
-        return this.favsService.removeArtist(id);
-
-      case 'track':
-        return this.favsService.removeTrack(id);
-
-      default:
-        break;
-    }
+  remove(@Param('entity') entity: FAV_TYPE, @Param('id') id: string) {
+    return this.favsService.removeEntity(entity, id);
   }
 }

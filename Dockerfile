@@ -11,4 +11,6 @@ RUN npm install
 
 COPY . .
 
+CMD [ "npm run typeorm:run-migrations" ]
+
 EXPOSE ${APP_PORT}
